@@ -34,9 +34,9 @@
   --good: #15803d;
   --bad: #b42318;
   --p-rak: #2563eb;
-  --p-derech: #d97706;
-  --p-emet: #dc2626;
-  --p-lamed: #0e7490;
+  --p-derech: #c27c00;
+  --p-emet: #d4183b;
+  --p-lamed: #0891b2;
   --shadow: 0 10px 30px rgba(20, 30, 50, .16), 0 2px 6px rgba(20, 30, 50, .08);
   --font-display: "Secular One", "Arial Hebrew", "Arial", sans-serif;
   --font-body: "Assistant", "Segoe UI", "Arial", sans-serif;
@@ -332,9 +332,9 @@ button { font: inherit; color: inherit; }
 
   const PARTIES = {
     rak:    { letters: "רק",  name: "ביחד",        leader: "בנט",     dir: "right", color: "#2563eb", css: "var(--p-rak)" },
-    derech: { letters: "דרך", name: "ישר!",        leader: "איזנקוט", dir: "left",  color: "#d97706", css: "var(--p-derech)" },
-    emet:   { letters: "אמת", name: "הדמוקרטים",   leader: "גולן",    dir: "up",    color: "#dc2626", css: "var(--p-emet)" },
-    lamed:  { letters: "ל",   name: "ישראל ביתנו", leader: "ליברמן",  dir: "down",  color: "#0e7490", css: "var(--p-lamed)" }
+    derech: { letters: "דרך", name: "ישר!",        leader: "איזנקוט", dir: "left",  color: "#c27c00", css: "var(--p-derech)" },
+    emet:   { letters: "אמת", name: "הדמוקרטים",   leader: "גולן",    dir: "up",    color: "#d4183b", css: "var(--p-emet)" },
+    lamed:  { letters: "ל",   name: "ישראל ביתנו", leader: "ליברמן",  dir: "down",  color: "#0891b2", css: "var(--p-lamed)" }
   };
   const ORDER = ["rak", "derech", "emet", "lamed"];
   const DIR_PARTY = { right: "rak", left: "derech", up: "emet", down: "lamed" };
@@ -342,12 +342,25 @@ button { font: inherit; color: inherit; }
 
   const LISTS = {
     rak: ["נפתלי בנט","יאיר לפיד","קרן טרנר","מירב בן ארי","לירן אבישר בן חורין","נעם תיבון","מיכל הירש נגרי","איתן גינזבורג","מירב כהן","יונתן שלו","ברוריה נעים ארמן","רם בן ברק","אמיר סטרוגו","נאור שירי","ניסן זאבי","ולדימיר בליאק","אורלי הראל","יוראי להב הרצנו","שחר ורון","יסמין סאקס-פרידמן"],
-    derech: ["גדי איזנקוט","יורם כהן","אורית פרקש הכהן","עדי אלטשולר","מתן כהנא","חילי טרופר","שאול מרידור","תאיר איפרגן","אושרת גני גונן","שירה שפירא","ענבר הרוש גיטי","אלעזר שטרן","כמיל אבו רוקן","דבורה שריפיאן בכר","אלקס ריף","ענבר יחזקאלי","רועי פולקמן","ישראל זרי","טל אוחנה חכמון","אליסף פרץ"],
-    emet: ["יאיר גולן","נעמה לזימי","גלעד קריב","אפרת רייטן","יאיא פינק","גבי לסקי","עמרי רונן","מיכל רוזין","משה רדמן אבוטבול","סומיה בשיר","נמרוד שפר","מורן זר קצנשטיין","אבי דבוש","אמילי מואטי","תומר אביטל","נאוה רוזוליו","רם שפע","עלי סלאלחה","רותם סיון","מורן מישל"],
-    lamed: ["אביגדור ליברמן","רפי בן שטרית","טליה לנקרי","עודד פורר","יוליה מלינובסקי","שרון שרעבי","חמד עמאר","יבגני סובה","אלוירה קוליחמן","דן אילוז","לילי בן עמי","יעל בנבנישתי","דוד אזולאי","לימור מגן-תלם","ישראל בן שטרית","שרון רופא אופיר","מור דקל","מיכאלה לוין","אוליביה רפוביץ'","ינקי מוזס"]
+    derech: ["גדי איזנקוט","יורם כהן","אורית פרקש-הכהן","עדי אלטשולר","מתן כהנא","חילי טרופר","שאול מרידור","תאיר איפרגן","אושרת גני גונן","שירה שפירא","ענבר הרוש גיטי","אלעזר שטרן","כמיל אבו רוקן","דבורה שריפיאן בכר","אלקס ריף","ענבר יחזקאלי","רועי פולקמן","ישראל זרי","טל אוחנה חכמון","אליסף פרץ"],
+    emet: ["יאיר גולן","נעמה לזימי","גלעד קריב","אפרת רייטן","יאיא פינק","גבי לסקי","עמרי רונן","מיכל רוזין","משה רדמן אבוטבול","סומיה בשיר","נמרוד שפר","מורן זר קצנשטיין","אבי דבוש","אמילי מואטי","תומר אביטל","נאווה רוזוליו","רם שפע","עלי סלאלחה","רתם סיון","ערן עציון"],
+    lamed: ["אביגדור ליברמן","רפי בן שטרית","טליה לנקרי","עודד פורר","יוליה מלינובסקי","שרון שרעבי","חמד עמאר","יבגני סובה","אלוירה קוליחמן","דן אילוז","לילי בן עמי","יעל בנבנישתי","דוד אזולאי","לימור מגן תלם","ישראל בן שטרית","שרון רופא אופיר","מור דקל","מיכאלה לוין","אוליביה רפוביץ'","יענקי מוזס"]
   };
 
   const $ = (id) => document.getElementById(id);
+
+  // ---------- Anonymous counters (no cookies, no personal data) ----------
+  // Each event bumps a public counter; stats.html reads them back.
+  const STATS_NS = "hachlek-lakalpi-katzboaz";
+  const statsOn = (() => {
+    if (!/^https?:$/.test(location.protocol) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return false;
+    try { return localStorage.getItem("hachlek-nostats") !== "1"; } catch (e) { return true; }
+  })();
+  function track(key) {
+    if (!statsOn) return;
+    try { fetch(`https://abacus.jasoncameron.dev/hit/${STATS_NS}/${key}`, { mode: "cors", keepalive: true }).catch(() => {}); } catch (e) {}
+  }
+  try { if (!sessionStorage.getItem("hachlek-visit")) { sessionStorage.setItem("hachlek-visit", "1"); track("visit"); } } catch (e) { track("visit"); }
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ---------- Helpers ----------
@@ -399,6 +412,7 @@ button { font: inherit; color: inherit; }
 
   function startGame(n) {
     mode = n; deck = buildDeck(n); idx = 0; answers = []; locked = false;
+    track(`start_${n}`);
     $("feedback").textContent = ""; $("feedback").className = "feedback";
     $("stack").innerHTML = "";
     show("game");
@@ -480,6 +494,7 @@ button { font: inherit; color: inherit; }
     const chosen = DIR_PARTY[dir];
     const ok = chosen === person.party;
     answers.push({ ...person, chosen, ok });
+    track(`conf_${person.party}_${chosen}`);
 
     const far = Math.max(innerWidth, innerHeight);
     const v = { right: [far, dy], left: [-far, dy], up: [dx, -far], down: [dx, far] }[dir];
@@ -543,6 +558,8 @@ button { font: inherit; color: inherit; }
   function finish() {
     const t = tally();
     const overall = pct(t.correct, t.total);
+    track(`complete_${mode}`);
+    track(`score_${Math.min(100, Math.floor(overall / 10) * 10)}`);
     $("total").innerHTML = `${t.correct}<small>/${t.total}</small>`;
     $("rank").textContent = rankOf(overall);
 
@@ -574,7 +591,9 @@ button { font: inherit; color: inherit; }
     const url = shareUrl();
     $("shareX").href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}${url ? `&url=${encodeURIComponent(url)}` : ""}`;
     $("shareFb").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url || "https://www.facebook.com")}&quote=${encodeURIComponent(text)}`;
-    $("copyText").onclick = () => copy(text + (url ? `\n${url}` : ""));
+    $("copyText").onclick = () => { track("share_copy"); copy(text + (url ? `\n${url}` : "")); };
+    $("shareX").onclick = () => track("share_x");
+    $("shareFb").onclick = () => track("share_fb");
     show("results");
     $("results").scrollTop = 0;
     drawShareImage(t).catch(() => { $("shareImg").hidden = true; $("imgNote").hidden = true; });
@@ -657,6 +676,7 @@ button { font: inherit; color: inherit; }
     $("shareImg").src = dataUrl; $("shareImg").hidden = false; $("imgNote").hidden = false;
 
     $("saveImg").onclick = async () => {
+      track("share_img");
       try {
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], "hachlek-lakalpi.png", { type: "image/png" });
@@ -680,7 +700,7 @@ button { font: inherit; color: inherit; }
   // ---------- Wiring ----------
   $("play20").onclick = () => startGame(20);
   $("play80").onclick = () => startGame(80);
-  $("again").onclick = () => show("start");
+  $("again").onclick = () => { track("again"); show("start"); };
   $("quit").onclick = () => { current = null; show("start"); };
 })();
 </script>

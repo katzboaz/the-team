@@ -17,4 +17,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
           git add img/candidates
-          git diff --cached --quiet || (git commit -m "Add candidate photos from party websites" && git push)
+          git diff --cached --quiet || (git commit -m "Add candidate photos from party websites" && git pull --rebase origin ccr-14311a87-fht1xv && git push)
