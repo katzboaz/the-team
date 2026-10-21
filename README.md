@@ -10,3 +10,4 @@
 פותחים את `index.html` בדפדפן. בסוף מוצגת התוצאה לכל מפלגה, עם שיתוף ל־X ולפייסבוק ותמונת תוצאה.
 
 לשחק: https://katzboaz.github.io/the-team/
+סטטיסטיקות: https://katzboaz.github.io/the-team/stats.html
