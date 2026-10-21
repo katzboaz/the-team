@@ -90,11 +90,33 @@ def face_box(im):
     if len(found) == 0: return None
     return max(found, key=lambda f: f[2] * f[3])
 
+REMBG = None
+BACKDROP = (214, 218, 224)
+def same_backdrop(im):
+    """Cut the person out and put them on one neutral backdrop, so the studio colour of
+    each party's photo shoot doesn't give the answer away."""
+    global REMBG
+    try:
+        from rembg import remove, new_session
+        if REMBG is None: REMBG = new_session("u2net_human_seg")
+        cut = remove(im, session=REMBG, alpha_matting=True)
+        bg = Image.new("RGBA", cut.size, BACKDROP + (255,))
+        return Image.alpha_composite(bg, cut).convert("RGB")
+    except Exception as e:
+        print("  background removal failed:", e)
+        return im
+
 def save(src, dest, referer):
-    r = requests.get(src, timeout=40, headers={"User-Agent": UA, "Referer": referer})
-    r.raise_for_status()
+    import time
+    for attempt in range(4):
+        try:
+            r = requests.get(src, timeout=40, headers={"User-Agent": UA, "Referer": referer, "Accept": "image/avif,image/webp,image/*,*/*"})
+            r.raise_for_status(); break
+        except Exception:
+            if attempt == 3: raise
+            time.sleep(6 * (attempt + 1))
     im = Image.open(io.BytesIO(r.content)).convert("RGBA")
-    bg = Image.new("RGBA", im.size, (200, 204, 210, 255))   # neutral grey behind transparent cut-outs
+    bg = Image.new("RGBA", im.size, BACKDROP + (255,))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
     w, h = im.size
     try:
@@ -112,6 +134,7 @@ def save(src, dest, referer):
         side = min(w, h); left = (w - side) // 2; top = min(int(h * 0.04), h - side) if h > w else 0
         how = "no-face"
     im = im.crop((left, top, left + side, top + side)).resize((360, 360), Image.LANCZOS)
+    im = same_backdrop(im)
     im.save(dest, "JPEG", quality=82, optimize=True, progressive=True)
     return how
 
@@ -128,9 +151,12 @@ def main():
             pages = list(cfg.get("pages", []))
             found = {}
             # Party list pages
+            for k, url in cfg.get("direct", {}).items():
+                found[int(k)] = (url, pages[0] if pages else url, "direct")
             pool = []
             members = {}   # idx -> (url, og, imgs)
             for u in pages:
+                if len(found) == len(names): break
                 d = visit(pg, u)
                 print(f"[{party}] {u} -> {len(d['imgs'])} imgs, title {d['title'][:50]!r}")
                 if len(d["imgs"]) < 10:
