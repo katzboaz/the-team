@@ -1,0 +1,17 @@
+name: check counter service
+on:
+  push:
+    branches: [ccr-14311a87-fht1xv]
+    paths: [".github/workflows/check-counter.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          NS=hachlek-lakalpi-katzboaz
+          for k in visit start_20 start_80 complete_20 score_50 conf_rak_rak share_x; do
+            printf "%s " $k; curl -s -m 15 -o - -w " [%{http_code}]\n" "https://abacus.jasoncameron.dev/get/$NS/$k"; done
+          echo "== info"; curl -s -m 15 -i "https://abacus.jasoncameron.dev/info/$NS/visit" | grep -iE "^HTTP|ratelimit|retry|^\{"
+          echo "== 45 parallel gets"
+          for i in $(seq 1 45); do curl -s -m 20 -o /dev/null -w "%{http_code}\n" "https://abacus.jasoncameron.dev/get/$NS/visit" & done | sort | uniq -c
+          echo "== headers of one request"; curl -s -i -m 15 -H "Origin: https://katzboaz.github.io" "https://abacus.jasoncameron.dev/get/$NS/visit" | head -20
