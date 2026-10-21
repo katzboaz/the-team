@@ -38,6 +38,32 @@ def score(name, text):
         hit += 1 if best >= 0.8 else 0
     return hit / len(want)
 
+def plain_imgs(url):
+    """Static HTML fallback for sites that block headless browsers."""
+    from bs4 import BeautifulSoup
+    from urllib.parse import urljoin
+    try:
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=40)
+    except Exception as e:
+        print("  plain fetch failed", e); return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    out = []
+    for img in soup.find_all("img"):
+        src = img.get("data-src") or img.get("src") or ""
+        ss = img.get("srcset") or img.get("data-srcset")
+        if ss:
+            parts = sorted((p.strip().split() for p in ss.split(",") if p.strip()), key=lambda p: -int((p[1] if len(p) > 1 else "0").rstrip("wx") or 0))
+            src = parts[0][0]
+        p, ctx = img.parent, ""
+        for _ in range(4):
+            if p is None: break
+            ctx = p.get_text(" ", strip=True)
+            if ctx: break
+            p = p.parent
+        if src and not re.search(r"\.svg|facebook|logo|pixel|icon", src, re.I):
+            out.append({"alt": img.get("alt", ""), "ctx": ctx[:120], "src": urljoin(r.url, src), "w": 0, "h": 0})
+    return out
+
 def visit(pg, url):
     try:
         pg.goto(url, wait_until="networkidle", timeout=60000)
@@ -48,20 +74,39 @@ def visit(pg, url):
         pg.mouse.wheel(0, 4000); pg.wait_for_timeout(500)
     return pg.evaluate(COLLECT)
 
+FACES = None
+def face_box(im):
+    """Largest frontal face as (x, y, w, h), or None."""
+    global FACES
+    import cv2, numpy as np
+    if FACES is None:
+        FACES = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    g = cv2.cvtColor(np.array(im), cv2.COLOR_RGB2GRAY)
+    found = FACES.detectMultiScale(g, scaleFactor=1.1, minNeighbors=6, minSize=(max(40, im.width // 25),) * 2)
+    if len(found) == 0: return None
+    return max(found, key=lambda f: f[2] * f[3])
+
 def save(src, dest, referer):
     r = requests.get(src, timeout=40, headers={"User-Agent": UA, "Referer": referer})
     r.raise_for_status()
-    im = Image.open(io.BytesIO(r.content))
-    im = im.convert("RGBA")
+    im = Image.open(io.BytesIO(r.content)).convert("RGBA")
     bg = Image.new("RGBA", im.size, (200, 204, 210, 255))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
     w, h = im.size
-    side = min(w, h)
-    left = (w - side) // 2
-    top = 0 if h > w else 0          # portraits: keep the top (faces are high in the frame)
-    if h > w: top = min(int(h * 0.04), h - side)
-    im = im.crop((left, top, left + side, top + side)).resize((320, 320), Image.LANCZOS)
+    f = face_box(im)
+    if f is not None:
+        fx, fy, fw, fh = f
+        side = int(min(w, h, fh * 2.6))
+        cx, cy = fx + fw / 2, fy + fh / 2 + fh * 0.22
+        left = int(min(max(cx - side / 2, 0), w - side))
+        top = int(min(max(cy - side / 2, 0), h - side))
+        how = "face"
+    else:
+        side = min(w, h); left = (w - side) // 2; top = min(int(h * 0.04), h - side) if h > w else 0
+        how = "no-face"
+    im = im.crop((left, top, left + side, top + side)).resize((360, 360), Image.LANCZOS)
     im.save(dest, "JPEG", quality=82, optimize=True, progressive=True)
+    return how
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
@@ -77,33 +122,50 @@ def main():
             found = {}
             # Party list pages
             pool = []
+            members = {}   # idx -> (url, og, imgs)
             for u in pages:
                 d = visit(pg, u)
-                print(f"[{party}] {u} -> {len(d['imgs'])} imgs")
+                print(f"[{party}] {u} -> {len(d['imgs'])} imgs, title {d['title'][:50]!r}")
+                if len(d["imgs"]) < 10:
+                    d["imgs"] += plain_imgs(u)
+                    print(f"[{party}] plain fetch -> {len(d['imgs'])} imgs")
                 pool += [(i, u) for i in d["imgs"]]
-                # member pages linked by name (one page per candidate)
                 if cfg.get("follow"):
                     for l in d["links"]:
                         if re.search(cfg["follow"], l["h"]):
                             for idx, n in enumerate(names):
-                                if idx not in found and score(n, l["t"]) >= 0.99:
+                                if idx not in members and score(n, l["t"]) >= 0.99:
                                     md = visit(pg, l["h"])
-                                    src = md["og"] or (max(md["imgs"], key=lambda x: (x["w"] or 0) * (x["h"] or 0))["src"] if md["imgs"] else None)
-                                    if src: found[idx] = (src, l["h"], "member-page")
+                                    members[idx] = (l["h"], md["og"], md["imgs"])
+            if members:
+                # An image that shows up on several member pages is site chrome, not the candidate.
+                from collections import Counter
+                og_count = Counter(m[1] for m in members.values())
+                img_count = Counter(src for m in members.values() for src in {i["src"] for i in m[2]})
+                for idx, (url, og, imgs) in members.items():
+                    if og and og_count[og] == 1:
+                        found[idx] = (og, url, "member og"); continue
+                    own = [i for i in imgs if img_count[i["src"]] == 1]
+                    if own:
+                        best = max(own, key=lambda i: (score(names[idx], i["alt"] + " " + i["ctx"]), (i["w"] or 0) * (i["h"] or 0)))
+                        found[idx] = (best["src"], url, "member img")
             for idx, n in enumerate(names):
                 if idx in found: continue
-                best = max(pool, key=lambda x: max(score(n, x[0]["alt"]), score(n, x[0]["ctx"])), default=None)
-                if best:
-                    s = max(score(n, best[0]["alt"]), score(n, best[0]["ctx"]))
-                    if s >= 0.99: found[idx] = (best[0]["src"], best[1], f"list ({best[0]['alt'] or best[0]['ctx'][:40]})")
+                ranked = sorted(pool, key=lambda x: -max(score(n, x[0]["alt"]), score(n, x[0]["ctx"]), score(n, requests.utils.unquote(x[0]["src"]).split("/")[-1])))
+                if ranked:
+                    b0 = ranked[0][0]
+                    s0 = max(score(n, b0["alt"]), score(n, b0["ctx"]), score(n, requests.utils.unquote(b0["src"]).split("/")[-1]))
+                    if s0 >= 0.99: found[idx] = (b0["src"], ranked[0][1], f"list ({b0['alt'] or b0['ctx'][:40]})")
+                    else:
+                        print(f"  miss {party} {idx+1} {n}; nearest:", [ (r[0]['alt'][:30], r[0]['ctx'][:50], r[0]['src'][-60:]) for r in ranked[:3] ])
             for idx, n in enumerate(names):
                 dest = OUT / f"{party}-{idx + 1:02d}.jpg"
                 if idx not in found:
                     report.append(f"MISS {party} {idx + 1} {n}"); continue
                 src, ref, how = found[idx]
                 try:
-                    save(src, dest, ref)
-                    report.append(f"OK   {party} {idx + 1} {n} <- {how} {src}")
+                    crop = save(src, dest, ref)
+                    report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}")
                 except Exception as e:
                     report.append(f"FAIL {party} {idx + 1} {n} {src} {e}")
         b.close()
