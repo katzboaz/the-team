@@ -44,11 +44,11 @@ def plain_imgs(url):
     from urllib.parse import urljoin
     import time
     r = None
-    for attempt in range(4):
+    for attempt in range(2):
         try:
-            r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": "he-IL,he;q=0.9"}, timeout=40); break
+            r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": "he-IL,he;q=0.9"}, timeout=(10, 25)); break
         except Exception as e:
-            print("  plain fetch failed", attempt, e); time.sleep(5 * (attempt + 1))
+            print("  plain fetch failed", attempt, e); time.sleep(5)
     if r is None: return []
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
@@ -70,7 +70,7 @@ def plain_imgs(url):
 
 def visit(pg, url):
     try:
-        pg.goto(url, wait_until="networkidle", timeout=60000)
+        pg.goto(url, wait_until="networkidle", timeout=30000)
     except Exception as e:
         print("  goto timeout/err", url, str(e)[:80])
     pg.wait_for_timeout(2000)
@@ -108,13 +108,19 @@ def same_backdrop(im):
 
 def save(src, dest, referer):
     import time
-    for attempt in range(4):
+    from urllib.parse import urlparse
+    host = urlparse(src).hostname
+    if host in DEAD_HOSTS: raise RuntimeError(f"{host} unreachable earlier in this run")
+    for attempt in range(2):
         try:
-            r = requests.get(src, timeout=40, headers={"User-Agent": UA, "Referer": referer, "Accept": "image/avif,image/webp,image/*,*/*"})
+            r = requests.get(src, timeout=(10, 25), headers={"User-Agent": UA if "wiki" not in (host or "") else WIKI_UA["User-Agent"], "Referer": referer, "Accept": "image/avif,image/webp,image/*,*/*"})
             r.raise_for_status(); break
+        except requests.HTTPError:
+            raise
         except Exception:
-            if attempt == 3: raise
-            time.sleep(6 * (attempt + 1))
+            if attempt == 1:
+                DEAD_HOSTS.add(host); raise
+            time.sleep(5)
     im = Image.open(io.BytesIO(r.content)).convert("RGBA")
     bg = Image.new("RGBA", im.size, BACKDROP + (255,))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
@@ -139,6 +145,7 @@ def save(src, dest, referer):
     return how
 
 FORCE = "--force" in sys.argv
+DEAD_HOSTS = set()
 WIKI_UA = {"User-Agent": "hachlek-lakalpi/1.0 (https://github.com/katzboaz/the-team; game photo credits)"}
 
 def wiki_photo(name):
