@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>החלק לקלפי</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="משחק החלקה: שייכו את 20 המועמדים הראשונים של ביחד, ישר!, הדמוקרטים וישראל ביתנו לפתק הנכון.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://katzboaz.github.io/the-team/">
+<meta property="og:title" content="החלק לקלפי">
+<meta property="og:description" content="כמה אתם מכירים את 20 הראשונים ברשימות של בנט, איזנקוט, גולן וליברמן?">
+<meta property="og:image" content="https://katzboaz.github.io/the-team/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="he_IL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://katzboaz.github.io/the-team/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen voting booth. The candidate card sits in the middle, the four ballot slips wait at its four edges. */
+:root {
+  --bg: #e6ebf1;          /* booth partition grey-blue */
+  --surface: #ffffff;
+  --ink: #141a24;
+  --muted: #5a6577;
+  --line: #c6cfdb;
+  --accent: #1e4fa8;      /* envelope blue */
+  --on-accent: #ffffff;
+  --paper: #fcfcf8;       /* ballot slip, same in both themes */
+  --paper-ink: #111111;
+  --good: #15803d;
+  --bad: #b42318;
+  --p-rak: #2563eb;
+  --p-derech: #d97706;
+  --p-emet: #dc2626;
+  --p-lamed: #0e7490;
+  --shadow: 0 10px 30px rgba(20, 30, 50, .16), 0 2px 6px rgba(20, 30, 50, .08);
+  --font-display: "Secular One", "Arial Hebrew", "Arial", sans-serif;
+  --font-body: "Assistant", "Segoe UI", "Arial", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --surface: #1a212b; --ink: #eef1f6; --muted: #9ba6b6; --line: #2d3644;
+    --accent: #7aa7ff; --on-accent: #0b1630; --good: #4ade80; --bad: #f87171;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #1a212b; --ink: #eef1f6; --muted: #9ba6b6; --line: #2d3644;
+  --accent: #7aa7ff; --on-accent: #0b1630; --good: #4ade80; --bad: #f87171;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+  max-width: 560px;
+  margin-inline: auto;
+}
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* ---------- Ballot slip (shared) ---------- */
+.slip {
+  background: var(--paper);
+  color: var(--paper-ink);
+  border: 1px solid #d9d6cc;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 #e7e4da, 0 3px 10px rgba(0, 0, 0, .12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  user-select: none;
+}
+.slip .letters { font-family: var(--font-display); line-height: 1; letter-spacing: .02em; }
+.slip .pname { font-weight: 700; font-size: 12px; line-height: 1.2; }
+.slip .leader { font-size: 11px; color: #555; line-height: 1.2; }
+.slip::after { /* party colour stripe at the foot of the slip */
+  content: ""; position: absolute; inset: auto 8px 5px; height: 3px; border-radius: 2px; background: var(--pc);
+}
+
+/* ---------- Start screen ---------- */
+.start { justify-content: center; gap: 22px; overflow-y: auto; }
+.start h1 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 12vw, 58px);
+  line-height: 1;
+  margin: 0;
+  text-wrap: balance;
+}
+.start h1 span { color: var(--accent); }
+.start .lede { margin: 0; font-size: 18px; color: var(--muted); max-width: 32em; }
+.fan { display: flex; gap: 10px; justify-content: flex-start; direction: ltr; flex-wrap: wrap; }
+.fan .slip { width: 74px; height: 92px; padding: 8px 4px 12px; }
+.fan .slip .letters { font-size: 28px; margin-bottom: 4px; }
+.fan .slip:nth-child(1) { transform: rotate(-4deg); }
+.fan .slip:nth-child(2) { transform: rotate(2deg) translateY(4px); }
+.fan .slip:nth-child(3) { transform: rotate(-1deg); }
+.fan .slip:nth-child(4) { transform: rotate(3deg) translateY(3px); }
+.howto { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 15px; }
+.howto dt { font-weight: 700; font-variant-numeric: tabular-nums; direction: ltr; text-align: right; }
+.howto dd { margin: 0; color: var(--muted); }
+.modes { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  appearance: none; border: 0; cursor: pointer;
+  padding: 14px 20px; border-radius: 12px;
+  font-weight: 700; font-size: 17px;
+  background: var(--accent); color: var(--on-accent);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  text-decoration: none;
+  transition: transform .12s ease, filter .12s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(.97); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn small { font-weight: 400; opacity: .85; font-size: 14px; }
+.source { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* ---------- Game screen ---------- */
+.hud { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; }
+.progress { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .3s ease; }
+.count { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.quit { background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 14px; padding: 4px 6px; }
+
+.arena {
+  direction: ltr;           /* keep left/right literal regardless of page direction */
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) 62px;
+  grid-template-rows: 78px minmax(0, 1fr) 78px;
+  gap: 10px;
+}
+.arena .slip { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, outline-color .18s; outline: 3px solid transparent; outline-offset: 2px; }
+.arena .slip .arrow { font-size: 14px; color: #777; line-height: 1; }
+.arena .slip.hot { transform: scale(1.08); box-shadow: 0 0 0 3px var(--pc), 0 8px 22px rgba(0,0,0,.2); }
+.arena .slip.good { outline-color: var(--good); }
+.arena .slip.bad { outline-color: var(--bad); animation: shake .35s; }
+.slip-up    { grid-column: 2; grid-row: 1; width: min(220px, 100%); justify-self: center; flex-direction: row; gap: 12px; }
+.slip-down  { grid-column: 2; grid-row: 3; width: min(220px, 100%); justify-self: center; flex-direction: row; gap: 12px; }
+.slip-left  { grid-column: 1; grid-row: 2; padding: 10px 2px 14px; gap: 4px; }
+.slip-right { grid-column: 3; grid-row: 2; padding: 10px 2px 14px; gap: 4px; }
+.slip-up .letters, .slip-down .letters { font-size: 36px; }
+.slip-left .letters, .slip-right .letters { font-size: 26px; }
+.slip-up .meta, .slip-down .meta { text-align: right; direction: rtl; }
+.slip-left .meta, .slip-right .meta { direction: rtl; }
+
+.stack { grid-column: 2; grid-row: 2; position: relative; direction: rtl; }
+.card {
+  position: absolute; inset: 0;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 18px 14px;
+  text-align: center;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s;
+  will-change: transform;
+}
+.card:active { cursor: grabbing; }
+.card.behind { transform: scale(.94) translateY(10px); opacity: .7; pointer-events: none; }
+.avatar {
+  width: 104px; height: 104px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-size: 40px; color: #fff;
+  background: var(--av);
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,.12);
+}
+.card .name { font-family: var(--font-display); font-size: clamp(24px, 7vw, 32px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.card .pos { font-size: 15px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 3px 12px; font-variant-numeric: tabular-nums; }
+.card .q { font-size: 14px; color: var(--muted); margin: 0; }
+.card .stamp {
+  position: absolute; top: 16px; font-family: var(--font-display); font-size: 26px;
+  padding: 2px 12px; border: 3px solid var(--pc); color: var(--pc); border-radius: 8px;
+  opacity: 0; transform: rotate(-10deg); transition: opacity .1s;
+  background: var(--surface);
+}
+
+.feedback {
+  min-height: 52px; margin-top: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  text-align: center; font-size: 15px; border-radius: 12px; padding: 6px 12px;
+}
+.feedback.good { color: var(--good); }
+.feedback.bad { color: var(--bad); }
+.feedback b { color: var(--ink); }
+.hint { text-align: center; color: var(--muted); font-size: 13px; margin: 0; }
+
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* ---------- Results ---------- */
+.results { overflow-y: auto; gap: 18px; padding-bottom: 8px; }
+.results header { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
+.results .eyebrow { font-size: 13px; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.total { font-family: var(--font-display); font-size: clamp(54px, 18vw, 80px); line-height: 1; margin: 0; font-variant-numeric: tabular-nums; direction: ltr; text-align: right; }
+.total small { font-size: .4em; color: var(--muted); }
+.rank { font-size: 20px; font-weight: 700; margin: 0; }
+.rows { display: flex; flex-direction: column; gap: 12px; }
+.row { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.row .slip { height: 58px; padding: 0 0 8px; }
+.row .slip .letters { font-size: 24px; }
+.row .label { font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+.row .label span { color: var(--muted); font-weight: 400; font-size: 14px; }
+.row .bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+.row .bar i { display: block; height: 100%; background: var(--pc); border-radius: inherit; width: 0; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.row .pct { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; min-width: 3.2em; text-align: left; direction: ltr; }
+.share { display: flex; flex-direction: column; gap: 10px; }
+.share h2 { font-size: 17px; margin: 0; }
+.share-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn.x { background: #000; color: #fff; }
+.btn.fb { background: #1877f2; color: #fff; }
+.share-img { width: 100%; max-width: 100%; border-radius: 12px; box-shadow: var(--shadow); display: block; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.misses { font-size: 14px; color: var(--muted); margin: 0; }
+.misses summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.misses ul { margin: 8px 0 0; padding-inline-start: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .arena .slip, .row .bar i, .progress i { transition: none !important; }
+  .arena .slip.bad { animation: none; }
+}
+@media (max-height: 640px) {
+  .arena { grid-template-rows: 64px minmax(0, 1fr) 64px; }
+  .avatar { width: 80px; height: 80px; font-size: 32px; }
+  .slip-up .letters, .slip-down .letters { font-size: 30px; }
+}
+</style>
+</head>
+<body>
+<div class="app" dir="rtl" lang="he">
+
+  <!-- Start -->
+  <section class="screen start" id="start">
+    <div class="fan" aria-hidden="true" id="fan"></div>
+    <h1>החלק <span>לקלפי</span></h1>
+    <p class="lede">מופיע מועמד מ־20 המקומות הראשונים באחת מארבע הרשימות. החליקו אותו לפתק של המפלגה שלו.</p>
+    <dl class="howto">
+      <dt>→ ימינה</dt><dd>ביחד · בנט (רק)</dd>
+      <dt>← שמאלה</dt><dd>ישר! · איזנקוט (דרך)</dd>
+      <dt>↑ למעלה</dt><dd>הדמוקרטים · גולן (אמת)</dd>
+      <dt>↓ למטה</dt><dd>ישראל ביתנו · ליברמן (ל)</dd>
+    </dl>
+    <div class="modes">
+      <button class="btn primary" id="play20" type="button">סיבוב מהיר <small>20 כרטיסים</small></button>
+      <button class="btn ghost" id="play80" type="button">כל ה־80</button>
+    </div>
+    <p class="source">הרשימות כפי שהוגשו לוועדת הבחירות המרכזית לקראת הבחירות לכנסת ה־26 (27.10.2026). אפשר גם להקיש על הפתק או להשתמש בחיצי המקלדת.</p>
+  </section>
+
+  <!-- Game -->
+  <section class="screen" id="game" hidden>
+    <div class="hud">
+      <button class="quit" id="quit" type="button">יציאה</button>
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <span class="count" id="count">1/20</span>
+    </div>
+    <div class="arena" id="arena">
+      <div class="stack" id="stack"></div>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <p class="hint">החליקו את הכרטיס לכיוון הפתק, או הקישו על הפתק</p>
+  </section>
+
+  <!-- Results -->
+  <section class="screen results" id="results" hidden>
+    <header>
+      <span class="eyebrow">ספירת הקולות הסתיימה</span>
+      <p class="total" id="total">0<small>/20</small></p>
+      <p class="rank" id="rank"></p>
+    </header>
+    <div class="rows" id="rows"></div>
+    <details class="misses" id="missesBox">
+      <summary>את מי פספסתי?</summary>
+      <ul id="misses"></ul>
+    </details>
+    <div class="share">
+      <h2>שתפו את התוצאה</h2>
+      <div class="share-btns">
+        <a class="btn x" id="shareX" target="_blank" rel="noopener">שיתוף ב־X</a>
+        <a class="btn fb" id="shareFb" target="_blank" rel="noopener">שיתוף בפייסבוק</a>
+        <button class="btn ghost" id="copyText" type="button">העתקת טקסט</button>
+        <button class="btn ghost" id="saveImg" type="button">שמירת תמונה</button>
+      </div>
+      <img class="share-img" id="shareImg" alt="כרטיס התוצאה לשיתוף">
+      <p class="note" id="imgNote">אפשר ללחוץ לחיצה ארוכה על התמונה כדי לשמור אותה ולצרף לפוסט.</p>
+    </div>
+    <button class="btn primary" id="again" type="button">משחק חוזר</button>
+  </section>
+</div>
+
+<script>
+(() => {
+  // Address that share links point to. Empty = use the page's own address.
+  const SHARE_URL = "https://katzboaz.github.io/the-team/";
+
+  const PARTIES = {
+    rak:    { letters: "רק",  name: "ביחד",        leader: "בנט",     dir: "right", color: "#2563eb", css: "var(--p-rak)" },
+    derech: { letters: "דרך", name: "ישר!",        leader: "איזנקוט", dir: "left",  color: "#d97706", css: "var(--p-derech)" },
+    emet:   { letters: "אמת", name: "הדמוקרטים",   leader: "גולן",    dir: "up",    color: "#dc2626", css: "var(--p-emet)" },
+    lamed:  { letters: "ל",   name: "ישראל ביתנו", leader: "ליברמן",  dir: "down",  color: "#0e7490", css: "var(--p-lamed)" }
+  };
+  const ORDER = ["rak", "derech", "emet", "lamed"];
+  const DIR_PARTY = { right: "rak", left: "derech", up: "emet", down: "lamed" };
+  const ARROWS = { right: "→", left: "←", up: "↑", down: "↓" };
+
+  const LISTS = {
+    rak: ["נפתלי בנט","יאיר לפיד","קרן טרנר","מירב בן ארי","לירן אבישר בן חורין","נעם תיבון","מיכל הירש נגרי","איתן גינזבורג","מירב כהן","יונתן שלו","ברוריה נעים ארמן","רם בן ברק","אמיר סטרוגו","נאור שירי","ניסן זאבי","ולדימיר בליאק","אורלי הראל","יוראי להב הרצנו","שחר ורון","יסמין סאקס-פרידמן"],
+    derech: ["גדי איזנקוט","יורם כהן","אורית פרקש הכהן","עדי אלטשולר","מתן כהנא","חילי טרופר","שאול מרידור","תאיר איפרגן","אושרת גני גונן","שירה שפירא","ענבר הרוש גיטי","אלעזר שטרן","כמיל אבו רוקן","דבורה שריפיאן בכר","אלקס ריף","ענבר יחזקאלי","רועי פולקמן","ישראל זרי","טל אוחנה חכמון","אליסף פרץ"],
+    emet: ["יאיר גולן","נעמה לזימי","גלעד קריב","אפרת רייטן","יאיא פינק","גבי לסקי","עמרי רונן","מיכל רוזין","משה רדמן אבוטבול","סומיה בשיר","נמרוד שפר","מורן זר קצנשטיין","אבי דבוש","אמילי מואטי","תומר אביטל","נאוה רוזוליו","רם שפע","עלי סלאלחה","רותם סיון","מורן מישל"],
+    lamed: ["אביגדור ליברמן","רפי בן שטרית","טליה לנקרי","עודד פורר","יוליה מלינובסקי","שרון שרעבי","חמד עמאר","יבגני סובה","אלוירה קוליחמן","דן אילוז","לילי בן עמי","יעל בנבנישתי","דוד אזולאי","לימור מגן-תלם","ישראל בן שטרית","שרון רופא אופיר","מור דקל","מיכאלה לוין","אוליביה רפוביץ'","ינקי מוזס"]
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Helpers ----------
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const initials = (name) => { const p = name.replace(/['-]/g, " ").split(/\s+/).filter(Boolean); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : "")); };
+  const hash = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+  // Avatar colour comes from the name only, so it never hints at the party.
+  const avatarColor = (name) => `hsl(${hash(name) % 360} 32% 42%)`;
+  const pct = (c, t) => t ? Math.round(100 * c / t) : 0;
+
+  function slipEl(key, cls = "", withArrow = false) {
+    const p = PARTIES[key];
+    const el = document.createElement(withArrow ? "button" : "div");
+    if (withArrow) { el.type = "button"; el.setAttribute("aria-label", `${p.name} (${p.leader})`); }
+    el.className = `slip ${cls}`;
+    el.style.setProperty("--pc", p.css);
+    el.innerHTML = `<span class="letters">${p.letters}</span><span class="meta"><span class="pname">${p.name}</span><br><span class="leader">${p.leader}${withArrow ? " " + ARROWS[p.dir] : ""}</span></span>`;
+    return el;
+  }
+
+  // Start-screen fan of ballots
+  ORDER.forEach((k) => $("fan").appendChild(slipEl(k)));
+
+  // Ballots around the arena
+  const slips = {};
+  ORDER.forEach((k) => {
+    const d = PARTIES[k].dir;
+    const el = slipEl(k, `slip-${d}`, true);
+    el.addEventListener("click", () => { if (!locked && current) commit(d); });
+    $("arena").appendChild(el);
+    slips[d] = el;
+  });
+
+  // ---------- Game state ----------
+  let deck = [], idx = 0, answers = [], locked = false, current = null, mode = 20;
+
+  function buildDeck(n) {
+    const all = [];
+    ORDER.forEach((k) => {
+      const people = LISTS[k].map((name, i) => ({ name, party: k, place: i + 1 }));
+      all.push(...(n === 80 ? people : shuffle(people).slice(0, n / 4)));
+    });
+    return shuffle(all);
+  }
+
+  function show(id) { ["start", "game", "results"].forEach((s) => $(s).hidden = s !== id); }
+
+  function startGame(n) {
+    mode = n; deck = buildDeck(n); idx = 0; answers = []; locked = false;
+    $("feedback").textContent = ""; $("feedback").className = "feedback";
+    $("stack").innerHTML = "";
+    show("game");
+    renderCards();
+  }
+
+  function cardEl(person) {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <span class="stamp"></span>
+      <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}</div>
+      <h2 class="name">${person.name}</h2>
+      <span class="pos">מקום ${person.place} ברשימה</span>
+      <p class="q">לאיזה פתק?</p>`;
+    return el;
+  }
+
+  function renderCards() {
+    const stack = $("stack");
+    stack.innerHTML = "";
+    $("count").textContent = `${idx + 1}/${deck.length}`;
+    $("bar").style.width = `${(idx / deck.length) * 100}%`;
+    if (deck[idx + 1]) { const b = cardEl(deck[idx + 1]); b.classList.add("behind"); stack.appendChild(b); }
+    current = cardEl(deck[idx]);
+    stack.appendChild(current);
+    attachDrag(current);
+  }
+
+  function dirOf(dx, dy, t) {
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if (Math.max(ax, ay) < t) return null;
+    return ax > ay ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+  }
+
+  function highlight(dir) {
+    Object.entries(slips).forEach(([d, el]) => el.classList.toggle("hot", d === dir));
+    if (!current) return;
+    const stamp = current.querySelector(".stamp");
+    if (dir) {
+      const p = PARTIES[DIR_PARTY[dir]];
+      stamp.textContent = p.letters; stamp.style.setProperty("--pc", p.css); stamp.style.opacity = 1;
+    } else stamp.style.opacity = 0;
+  }
+
+  function attachDrag(el) {
+    let sx = 0, sy = 0, dx = 0, dy = 0, active = false;
+    const threshold = () => Math.min(110, el.offsetWidth * 0.3);
+    el.addEventListener("pointerdown", (e) => {
+      if (locked) return;
+      active = true; sx = e.clientX; sy = e.clientY; dx = dy = 0;
+      el.setPointerCapture(e.pointerId);
+      el.style.transition = "none";
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (!active) return;
+      dx = e.clientX - sx; dy = e.clientY - sy;
+      el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.06}deg)`;
+      highlight(dirOf(dx, dy, 36));
+    });
+    const end = () => {
+      if (!active) return;
+      active = false;
+      el.style.transition = "";
+      const d = dirOf(dx, dy, threshold());
+      if (d) commit(d, dx, dy);
+      else { el.style.transform = ""; highlight(null); }
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+  }
+
+  function commit(dir, dx = 0, dy = 0) {
+    if (locked || !current) return;
+    locked = true;
+    highlight(dir);
+    const person = deck[idx];
+    const chosen = DIR_PARTY[dir];
+    const ok = chosen === person.party;
+    answers.push({ ...person, chosen, ok });
+
+    const far = Math.max(innerWidth, innerHeight);
+    const v = { right: [far, dy], left: [-far, dy], up: [dx, -far], down: [dx, far] }[dir];
+    const card = current;
+    card.style.transition = reduceMotion ? "opacity .15s" : "";
+    card.style.transform = reduceMotion ? "" : `translate(${v[0]}px, ${v[1]}px) rotate(${v[0] * 0.03}deg)`;
+    card.style.opacity = "0";
+
+    const slip = slips[dir];
+    slip.classList.add(ok ? "good" : "bad");
+    if (!ok) slips[PARTIES[person.party].dir].classList.add("good");
+
+    const p = PARTIES[person.party];
+    const fb = $("feedback");
+    fb.className = `feedback ${ok ? "good" : "bad"}`;
+    fb.innerHTML = ok
+      ? `✓ נכון! <b>${person.name}</b> · ${p.name}, מקום ${person.place}`
+      : `✗ לא. <b>${person.name}</b> ברשימת ${p.name} (${p.letters}), מקום ${person.place}`;
+
+    setTimeout(() => {
+      Object.values(slips).forEach((s) => s.classList.remove("good", "bad", "hot"));
+      idx++;
+      if (idx >= deck.length) { current = null; finish(); }
+      else { renderCards(); }
+      locked = false;
+    }, ok ? 450 : 900);
+  }
+
+  addEventListener("keydown", (e) => {
+    if ($("game").hidden) return;
+    const map = { ArrowRight: "right", ArrowLeft: "left", ArrowUp: "up", ArrowDown: "down" };
+    if (map[e.key]) { e.preventDefault(); commit(map[e.key]); }
+  });
+
+  // ---------- Results ----------
+  function tally() {
+    const by = {};
+    ORDER.forEach((k) => by[k] = { c: 0, t: 0 });
+    answers.forEach((a) => { by[a.party].t++; if (a.ok) by[a.party].c++; });
+    const correct = answers.filter((a) => a.ok).length;
+    return { by, correct, total: answers.length };
+  }
+
+  function rankOf(p) {
+    if (p >= 90) return "רמת ועדת הבחירות המרכזית 🏛️";
+    if (p >= 70) return "רמת פאנל באולפן הבחירות 🎙️";
+    if (p >= 45) return "רמת קבוצת הווטסאפ המשפחתית 📱";
+    return "רמת \"רגע, מי זה בכלל?\" 🤷";
+  }
+
+  function shareUrl() {
+    if (SHARE_URL) return SHARE_URL;
+    return /^https?:/.test(location.href) ? location.href.split("#")[0] : "";
+  }
+
+  function shareText(t) {
+    const lines = ORDER.map((k) => `${PARTIES[k].letters} ${PARTIES[k].name}: ${pct(t.by[k].c, t.by[k].t)}%`);
+    return `🗳️ החלקתי לקלפי וזיהיתי ${t.correct} מתוך ${t.total} מועמדים!\n${lines.join("\n")}\nכמה אתם מכירים את הרשימות?`;
+  }
+
+  function finish() {
+    const t = tally();
+    const overall = pct(t.correct, t.total);
+    $("total").innerHTML = `${t.correct}<small>/${t.total}</small>`;
+    $("rank").textContent = rankOf(overall);
+
+    const rows = $("rows");
+    rows.innerHTML = "";
+    ORDER.forEach((k) => {
+      const p = PARTIES[k], r = t.by[k];
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.setProperty("--pc", p.css);
+      row.appendChild(slipEl(k));
+      row.querySelector(".slip .meta").remove();
+      const mid = document.createElement("div");
+      mid.style.minWidth = "0";
+      mid.innerHTML = `<div class="label">${p.name} <span>${r.c} מתוך ${r.t}</span></div><div class="bar"><i></i></div>`;
+      row.appendChild(mid);
+      const pc = document.createElement("div");
+      pc.className = "pct"; pc.textContent = `${pct(r.c, r.t)}%`;
+      row.appendChild(pc);
+      rows.appendChild(row);
+      requestAnimationFrame(() => requestAnimationFrame(() => { mid.querySelector(".bar i").style.width = `${pct(r.c, r.t)}%`; }));
+    });
+
+    const missed = answers.filter((a) => !a.ok);
+    $("missesBox").hidden = missed.length === 0;
+    $("misses").innerHTML = missed.map((a) => `<li><b>${a.name}</b> · ${PARTIES[a.party].name}, מקום ${a.place} (סימנתי ${PARTIES[a.chosen].letters})</li>`).join("");
+
+    const text = shareText(t);
+    const url = shareUrl();
+    $("shareX").href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}${url ? `&url=${encodeURIComponent(url)}` : ""}`;
+    $("shareFb").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url || "https://www.facebook.com")}&quote=${encodeURIComponent(text)}`;
+    $("copyText").onclick = () => copy(text + (url ? `\n${url}` : ""));
+    show("results");
+    $("results").scrollTop = 0;
+    drawShareImage(t).catch(() => { $("shareImg").hidden = true; $("imgNote").hidden = true; });
+  }
+
+  function copy(text) {
+    const btn = $("copyText");
+    const done = () => { btn.textContent = "הועתק ✓"; setTimeout(() => btn.textContent = "העתקת טקסט", 1600); };
+    const fallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) { btn.textContent = "סמנו והעתיקו ידנית"; }
+      ta.remove();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  }
+
+  // ---------- Share image (1080x1080) ----------
+  async function drawShareImage(t) {
+    try { await Promise.all([document.fonts.load('80px "Secular One"'), document.fonts.load('700 40px "Assistant"')]); } catch (e) {}
+    const S = 1080, c = document.createElement("canvas");
+    c.width = S; c.height = S;
+    const g = c.getContext("2d");
+    g.direction = "rtl";
+    const DISPLAY = '"Secular One", Arial, sans-serif', BODY = '"Assistant", Arial, sans-serif';
+
+    // envelope-blue background with a light paper grain of diagonal lines
+    g.fillStyle = "#16306a"; g.fillRect(0, 0, S, S);
+    g.strokeStyle = "rgba(255,255,255,.04)"; g.lineWidth = 2;
+    for (let i = -S; i < S * 2; i += 28) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i - S, S); g.stroke(); }
+
+    // title
+    g.fillStyle = "#fff"; g.textAlign = "center";
+    g.font = `96px ${DISPLAY}`; g.fillText("החלק לקלפי", S / 2, 150);
+    g.font = `600 34px ${BODY}`; g.fillStyle = "rgba(255,255,255,.75)";
+    g.fillText("כמה אני מכיר/ה את 20 הראשונים בכל רשימה", S / 2, 205);
+
+    // the big ballot slip
+    const bx = 110, by = 250, bw = S - 220, bh = 740;
+    g.save(); g.translate(S / 2, by + bh / 2); g.rotate(-0.012); g.translate(-S / 2, -(by + bh / 2));
+    g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 40; g.shadowOffsetY = 14;
+    g.fillStyle = "#fcfcf8"; g.fillRect(bx, by, bw, bh);
+    g.shadowColor = "transparent";
+
+    g.fillStyle = "#111"; g.textAlign = "center";
+    g.font = `150px ${DISPLAY}`; g.fillText(`${t.correct}/${t.total}`, S / 2, by + 175);
+    g.font = `700 38px ${BODY}`; g.fillStyle = "#333";
+    g.fillText(rankOf(pct(t.correct, t.total)).replace(/\s*\S+$/u, ""), S / 2, by + 235);
+
+    // four rows
+    const rx = bx + 50, rw = bw - 100;
+    ORDER.forEach((k, i) => {
+      const p = PARTIES[k], r = t.by[k], v = pct(r.c, r.t);
+      const y = by + 290 + i * 108;
+      // mini slip with letters (right side)
+      g.strokeStyle = "#cfcabd"; g.lineWidth = 2; g.fillStyle = "#fff";
+      g.fillRect(rx + rw - 96, y, 96, 84); g.strokeRect(rx + rw - 96, y, 96, 84);
+      g.fillStyle = p.color; g.fillRect(rx + rw - 86, y + 74, 76, 5);
+      g.fillStyle = "#111"; g.font = `46px ${DISPLAY}`; g.textAlign = "center";
+      g.fillText(p.letters, rx + rw - 48, y + 58);
+      // name + count
+      g.textAlign = "right"; g.font = `700 36px ${BODY}`; g.fillStyle = "#111";
+      g.fillText(`${p.name} · ${p.leader}`, rx + rw - 120, y + 34);
+      // bar
+      const barX = rx + 140, barW = rw - 120 - 140, barY = y + 52;
+      g.fillStyle = "#e4e2da"; roundRect(g, barX, barY, barW, 20, 10); g.fill();
+      if (v > 0) { g.fillStyle = p.color; roundRect(g, barX + barW - barW * v / 100, barY, Math.max(20, barW * v / 100), 20, 10); g.fill(); }
+      // percent
+      g.textAlign = "left"; g.font = `52px ${DISPLAY}`; g.fillStyle = "#111";
+      g.fillText(`${v}%`, rx, y + 66);
+    });
+    g.restore();
+
+    g.fillStyle = "#fff"; g.textAlign = "center"; g.font = `700 36px ${BODY}`;
+    g.fillText("ואתם? החליקו לקלפי 🗳️", S / 2, S - 38);
+
+    const dataUrl = c.toDataURL("image/png");
+    $("shareImg").src = dataUrl; $("shareImg").hidden = false; $("imgNote").hidden = false;
+
+    $("saveImg").onclick = async () => {
+      try {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], "hachlek-lakalpi.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: shareText(t) });
+          return;
+        }
+      } catch (e) { if (e && e.name === "AbortError") return; }
+      const a = document.createElement("a");
+      a.href = dataUrl; a.download = "hachlek-lakalpi.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      $("imgNote").textContent = "אם ההורדה לא התחילה, לחצו לחיצה ארוכה על התמונה ובחרו 'שמירה'.";
+    };
+  }
+
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+
+  // ---------- Wiring ----------
+  $("play20").onclick = () => startGame(20);
+  $("play80").onclick = () => startGame(80);
+  $("again").onclick = () => show("start");
+  $("quit").onclick = () => { current = null; show("start"); };
+})();
+</script>
+</body>
+</html>
