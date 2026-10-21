@@ -8,10 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pip install -q requests beautifulsoup4
-      - run: |
-          python tools/recon.py \
-            https://yasharwitheisenkot.com/team-member/ \
-            https://democrats.org.il/team/ \
-            "https://beytenu.org.il/%D7%A8%D7%A9%D7%99%D7%9E%D7%AA-%D7%9E%D7%A4%D7%9C%D7%92%D7%AA-%D7%99%D7%A9%D7%A8%D7%90%D7%9C-%D7%91%D7%99%D7%AA%D7%A0%D7%95-%D7%9C%D7%9B%D7%A0%D7%A1%D7%AA-%D7%94%D7%91%D7%90%D7%94/" \
-            https://beyachad.org.il/ https://www.beyachad.co.il/ https://beyachad2026.co.il/ https://www.bennett2026.co.il/ https://www.yeshatid.org.il/
+      - run: pip install -q playwright && python -m playwright install --with-deps chromium > /dev/null
+      - name: full
+        run: python tools/recon.py full https://be-yahad.org.il/ https://beytenu.org.il/
+      - name: yashar
+        run: |
+          python tools/recon.py og $(for s in gadi-eisenkot yoram-cohen orit-farkash adi-altschuler matan-kahana hili-tropper shaul-meridor tair-ifargan oshrat-gani-gonen shira-shapira inbar-harush-giti elazar-stern kamil-aburoken alex-rif inbar-yehezkeli roy-folkman israel-zari tal-ohana elisaf-peretz; do echo https://yasharwitheisenkot.com/team-member/$s/; done) "https://yasharwitheisenkot.com/team-member/%d7%93%d7%91%d7%95%d7%a8%d7%94-%d7%a9%d7%a8%d7%99%d7%a4%d7%99%d7%90%d7%9f-%d7%91%d7%9b%d7%a8/"

@@ -191,11 +191,17 @@ button { font: inherit; color: inherit; }
 .card:active { cursor: grabbing; }
 .card.behind { transform: scale(.94) translateY(10px); opacity: .7; pointer-events: none; }
 .avatar {
-  width: 104px; height: 104px; border-radius: 50%;
+  width: 132px; height: 132px; border-radius: 50%;
   display: grid; place-items: center;
   font-family: var(--font-display); font-size: 40px; color: #fff;
   background: var(--av);
   box-shadow: inset 0 -6px 0 rgba(0,0,0,.12);
+  position: relative; overflow: hidden;
+}
+.avatar img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 20%;
+  -webkit-user-drag: none; pointer-events: none;
 }
 .card .name { font-family: var(--font-display); font-size: clamp(24px, 7vw, 32px); line-height: 1.15; margin: 0; text-wrap: balance; }
 .card .pos { font-size: 15px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 3px 12px; font-variant-numeric: tabular-nums; }
@@ -252,7 +258,7 @@ button { font: inherit; color: inherit; }
 }
 @media (max-height: 640px) {
   .arena { grid-template-rows: 64px minmax(0, 1fr) 64px; }
-  .avatar { width: 80px; height: 80px; font-size: 32px; }
+  .avatar { width: 96px; height: 96px; font-size: 34px; }
   .slip-up .letters, .slip-down .letters { font-size: 30px; }
 }
 </style>
@@ -351,6 +357,8 @@ button { font: inherit; color: inherit; }
   // Avatar colour comes from the name only, so it never hints at the party.
   const avatarColor = (name) => `hsl(${hash(name) % 360} 32% 42%)`;
   const pct = (c, t) => t ? Math.round(100 * c / t) : 0;
+  // Candidate photos live at img/candidates/<party>-<place>.jpg; missing ones fall back to initials.
+  const photoSrc = (p) => `img/candidates/${p.party}-${String(p.place).padStart(2, "0")}.jpg`;
 
   function slipEl(key, cls = "", withArrow = false) {
     const p = PARTIES[key];
@@ -402,7 +410,7 @@ button { font: inherit; color: inherit; }
     el.className = "card";
     el.innerHTML = `
       <span class="stamp"></span>
-      <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}</div>
+      <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}<img src="${photoSrc(person)}" alt="" draggable="false" onerror="this.remove()"></div>
       <h2 class="name">${person.name}</h2>
       <span class="pos">מקום ${person.place} ברשימה</span>
       <p class="q">לאיזה פתק?</p>`;
@@ -415,6 +423,7 @@ button { font: inherit; color: inherit; }
     $("count").textContent = `${idx + 1}/${deck.length}`;
     $("bar").style.width = `${(idx / deck.length) * 100}%`;
     if (deck[idx + 1]) { const b = cardEl(deck[idx + 1]); b.classList.add("behind"); stack.appendChild(b); }
+    if (deck[idx + 2]) new Image().src = photoSrc(deck[idx + 2]);
     current = cardEl(deck[idx]);
     stack.appendChild(current);
     attachDrag(current);
