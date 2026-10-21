@@ -1,0 +1,20 @@
+name: fetch candidate photos
+on:
+  push:
+    branches: [ccr-14311a87-fht1xv]
+    paths: [".github/workflows/photos.yml", "tools/fetch_photos.py", "tools/candidates.json"]
+permissions:
+  contents: write
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q playwright pillow requests && python -m playwright install --with-deps chromium > /dev/null
+      - run: python tools/fetch_photos.py
+      - name: commit photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add img/candidates
+          git diff --cached --quiet || (git commit -m "Add candidate photos from party websites" && git push)
