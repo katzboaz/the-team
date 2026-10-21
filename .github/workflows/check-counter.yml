@@ -1,0 +1,12 @@
+name: check counter service
+on:
+  push:
+    branches: [ccr-14311a87-fht1xv]
+    paths: [".github/workflows/check-counter.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for u in https://abacus.jasoncameron.dev/hit/hachlek-lakalpi-test/ping https://abacus.jasoncameron.dev/get/hachlek-lakalpi-test/ping https://abacus.jasoncameron.dev/get/hachlek-lakalpi-test/nokey https://api.counterapi.dev/v1/hachlek-lakalpi-test/ping/up; do
+            echo "== $u"; curl -s -i -m 20 -H "Origin: https://katzboaz.github.io" "$u" | grep -iE "^HTTP|access-control|^\{|value|count" ; echo; done
