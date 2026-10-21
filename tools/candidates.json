@@ -132,6 +132,10 @@
   "pages": [
    "https://beytenu.org.il/"
   ],
-  "follow": "\\?member=\\d+"
+  "follow": "\\?member=\\d+",
+  "skip": [
+   "2",
+   "8"
+  ]
  }
 }

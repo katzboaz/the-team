@@ -370,8 +370,20 @@ button { font: inherit; color: inherit; }
   // Avatar colour comes from the name only, so it never hints at the party.
   const avatarColor = (name) => `hsl(${hash(name) % 360} 32% 42%)`;
   const pct = (c, t) => t ? Math.round(100 * c / t) : 0;
-  // Candidate photos live at img/candidates/<party>-<place>.jpg; missing ones fall back to initials.
-  const photoSrc = (p) => `img/candidates/${p.party}-${String(p.place).padStart(2, "0")}.jpg`;
+  // Candidate photos live at img/candidates/<party>-<place>.jpg, listed in manifest.json.
+  // Photos switch on only when every party has (nearly) all of them: if one party were
+  // left with initials, the initials themselves would give the answer away.
+  const photoId = (p) => `${p.party}-${String(p.place).padStart(2, "0")}`;
+  let photos = new Set();
+  const photoSrc = (p) => photos.has(photoId(p)) ? `img/candidates/${photoId(p)}.jpg` : "";
+  fetch("img/candidates/manifest.json", { cache: "no-cache" })
+    .then((r) => r.ok ? r.json() : [])
+    .then((list) => {
+      const per = {};
+      list.forEach((id) => { const k = id.split("-")[0]; per[k] = (per[k] || 0) + 1; });
+      if (["rak", "derech", "emet", "lamed"].every((k) => (per[k] || 0) >= 18)) photos = new Set(list);
+    })
+    .catch(() => {});
 
   function slipEl(key, cls = "", withArrow = false) {
     const p = PARTIES[key];
@@ -424,7 +436,7 @@ button { font: inherit; color: inherit; }
     el.className = "card";
     el.innerHTML = `
       <span class="stamp"></span>
-      <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}<img src="${photoSrc(person)}" alt="" draggable="false" onerror="this.remove()"></div>
+      <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}${photoSrc(person) ? `<img src="${photoSrc(person)}" alt="" draggable="false" onerror="this.remove()">` : ""}</div>
       <h2 class="name">${person.name}</h2>
       <span class="pos">מקום ${person.place} ברשימה</span>
       <p class="q">לאיזה פתק?</p>`;
@@ -437,7 +449,7 @@ button { font: inherit; color: inherit; }
     $("count").textContent = `${idx + 1}/${deck.length}`;
     $("bar").style.width = `${(idx / deck.length) * 100}%`;
     if (deck[idx + 1]) { const b = cardEl(deck[idx + 1]); b.classList.add("behind"); stack.appendChild(b); }
-    if (deck[idx + 2]) new Image().src = photoSrc(deck[idx + 2]);
+    if (deck[idx + 2] && photoSrc(deck[idx + 2])) new Image().src = photoSrc(deck[idx + 2]);
     current = cardEl(deck[idx]);
     stack.appendChild(current);
     attachDrag(current);

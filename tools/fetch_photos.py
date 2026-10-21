@@ -138,6 +138,7 @@ def save(src, dest, referer):
     im.save(dest, "JPEG", quality=82, optimize=True, progressive=True)
     return how
 
+FORCE = "--force" in sys.argv
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 def main():
@@ -148,15 +149,18 @@ def main():
         pg = b.new_page(user_agent=UA, locale="he-IL", viewport={"width": 1400, "height": 1000})
         for party, cfg in LISTS.items():
             names = [cfg.get("aliases", {}).get(n, n) for n in cfg["names"]]
+            skip = {int(k) for k in cfg.get("skip", [])}
+            todo = [i for i in range(len(names)) if i not in skip and (FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists())]
+            if not todo:
+                print(f"[{party}] complete"); continue
             pages = list(cfg.get("pages", []))
             found = {}
-            # Party list pages
             for k, url in cfg.get("direct", {}).items():
                 found[int(k)] = (url, pages[0] if pages else url, "direct")
             pool = []
             members = {}   # idx -> (url, og, imgs)
             for u in pages:
-                if len(found) == len(names): break
+                if all(i in found for i in todo): break
                 d = visit(pg, u)
                 print(f"[{party}] {u} -> {len(d['imgs'])} imgs, title {d['title'][:50]!r}")
                 if len(d["imgs"]) < 10:
@@ -196,6 +200,7 @@ def main():
             for idx in [i for i, v in found.items() if dup[v[0]] > 1]:
                 print(f"  shared photo dropped for {party} {idx + 1}"); del found[idx]
             for idx, n in enumerate(names):
+                if idx not in todo: continue
                 dest = OUT / f"{party}-{idx + 1:02d}.jpg"
                 if idx not in found:
                     report.append(f"MISS {party} {idx + 1} {n}"); continue
@@ -207,7 +212,11 @@ def main():
                     report.append(f"FAIL {party} {idx + 1} {n} {src} {e}")
         b.close()
     print("\n".join(report))
-    (OUT / "SOURCES.txt").write_text("\n".join(r for r in report if r.startswith("OK")) + "\n", encoding="utf-8")
+    src_file = OUT / "SOURCES.txt"
+    old = src_file.read_text(encoding="utf-8").splitlines() if src_file.exists() and not FORCE else []
+    src_file.write_text("\n".join(old + [r for r in report if r.startswith("OK")]) + "\n", encoding="utf-8")
+    have = sorted(f.stem for f in OUT.glob("*.jpg"))
+    (OUT / "manifest.json").write_text(json.dumps(have) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":
     main()
