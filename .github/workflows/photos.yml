@@ -9,9 +9,11 @@ permissions:
   contents: write
 concurrency:
   group: photos-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   photos:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: anything missing?

@@ -44,11 +44,11 @@ def plain_imgs(url):
     from urllib.parse import urljoin
     import time
     r = None
-    for attempt in range(4):
+    for attempt in range(2):
         try:
-            r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": "he-IL,he;q=0.9"}, timeout=40); break
+            r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": "he-IL,he;q=0.9"}, timeout=(10, 25)); break
         except Exception as e:
-            print("  plain fetch failed", attempt, e); time.sleep(5 * (attempt + 1))
+            print("  plain fetch failed", attempt, e); time.sleep(5)
     if r is None: return []
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
@@ -70,7 +70,7 @@ def plain_imgs(url):
 
 def visit(pg, url):
     try:
-        pg.goto(url, wait_until="networkidle", timeout=60000)
+        pg.goto(url, wait_until="networkidle", timeout=30000)
     except Exception as e:
         print("  goto timeout/err", url, str(e)[:80])
     pg.wait_for_timeout(2000)
@@ -107,15 +107,25 @@ def same_backdrop(im):
         return im
 
 def save(src, dest, referer):
+    if src.startswith("manual:"):   # photo supplied by hand, kept in the repo
+        return finish(Image.open(ROOT / src[len("manual:"):]), dest)
     import time
-    for attempt in range(4):
+    from urllib.parse import urlparse
+    host = urlparse(src).hostname
+    if host in DEAD_HOSTS: raise RuntimeError(f"{host} unreachable earlier in this run")
+    for attempt in range(2):
         try:
-            r = requests.get(src, timeout=40, headers={"User-Agent": UA, "Referer": referer, "Accept": "image/avif,image/webp,image/*,*/*"})
+            from urllib.parse import quote
+            r = requests.get(src, timeout=(10, 25), headers={"User-Agent": UA if "wiki" not in (host or "") else WIKI_UA["User-Agent"], "Referer": quote(referer, safe=":/?&=#%"), "Accept": "image/avif,image/webp,image/*,*/*"})
             r.raise_for_status(); break
-        except Exception:
-            if attempt == 3: raise
-            time.sleep(6 * (attempt + 1))
-    im = Image.open(io.BytesIO(r.content)).convert("RGBA")
+        except (requests.ConnectionError, requests.Timeout):
+            if attempt == 1:
+                DEAD_HOSTS.add(host); raise
+            time.sleep(5)
+    return finish(Image.open(io.BytesIO(r.content)), dest)
+
+def finish(im, dest):
+    im = im.convert("RGBA")
     bg = Image.new("RGBA", im.size, BACKDROP + (255,))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
     w, h = im.size
@@ -139,6 +149,41 @@ def save(src, dest, referer):
     return how
 
 FORCE = "--force" in sys.argv
+DEAD_HOSTS = set()
+WIKI_UA = {"User-Agent": "hachlek-lakalpi/1.0 (https://github.com/katzboaz/the-team; game photo credits)"}
+
+def wiki_photo(name):
+    """Freely-licensed lead image of the person's Hebrew Wikipedia article, with credit."""
+    api = "https://he.wikipedia.org/w/api.php"
+    q = {"action": "query", "format": "json", "redirects": 1, "prop": "pageprops", "ppprop": "page_image_free|disambiguation"}
+    titles = [name]
+    try:
+        r = requests.get(api, params={"action": "query", "format": "json", "list": "search", "srsearch": name, "srlimit": 5}, headers=WIKI_UA, timeout=30).json()
+        titles += [h["title"] for h in r.get("query", {}).get("search", [])]
+    except Exception as e:
+        print("  wiki search failed", name, e)
+    for t in titles:
+        base = re.sub(r"\s*\(.*\)$", "", t)
+        if score(name, base) < 0.99 or score(base, name) < 0.99: continue
+        try:
+            pages = requests.get(api, params={**q, "titles": t}, headers=WIKI_UA, timeout=30).json()["query"]["pages"]
+        except Exception as e:
+            print("  wiki page failed", t, e); continue
+        for pg_ in pages.values():
+            props = pg_.get("pageprops", {})
+            if "disambiguation" in props or "page_image_free" not in props: continue
+            f = props["page_image_free"]
+            info = requests.get("https://commons.wikimedia.org/w/api.php", params={"action": "query", "format": "json", "titles": "File:" + f, "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 900}, headers=WIKI_UA, timeout=30).json()
+            ii = next(iter(info["query"]["pages"].values())).get("imageinfo")
+            if not ii:  # file hosted locally on he.wikipedia
+                info = requests.get(api, params={"action": "query", "format": "json", "titles": "File:" + f, "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 900}, headers=WIKI_UA, timeout=30).json()
+                ii = next(iter(info["query"]["pages"].values())).get("imageinfo")
+            if not ii: continue
+            ii = ii[0]; md = ii.get("extmetadata", {})
+            strip = lambda h: re.sub(r"<[^>]+>", "", h or "").strip()
+            credit = f"{strip(md.get('Artist', {}).get('value'))} · {strip(md.get('LicenseShortName', {}).get('value'))} · {ii.get('descriptionurl', '')}"
+            return ii.get("thumburl") or ii["url"], "https://he.wikipedia.org/wiki/" + pg_["title"].replace(" ", "_"), credit
+    return None
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 def main():
@@ -150,17 +195,18 @@ def main():
         for party, cfg in LISTS.items():
             names = [cfg.get("aliases", {}).get(n, n) for n in cfg["names"]]
             skip = {int(k) for k in cfg.get("skip", [])}
+            # "skip" = no usable photo anywhere; leave those with initials
             todo = [i for i in range(len(names)) if i not in skip and (FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists())]
             if not todo:
                 print(f"[{party}] complete"); continue
             pages = list(cfg.get("pages", []))
             found = {}
             for k, url in cfg.get("direct", {}).items():
-                found[int(k)] = (url, pages[0] if pages else url, "direct")
+                found[int(k)] = (url, pages[0] if pages else url, "direct" if not url.startswith("manual:") else "תמונה שסופקה ידנית")
             pool = []
             members = {}   # idx -> (url, og, imgs)
             for u in pages:
-                if all(i in found for i in todo): break
+                if all(i in found or i in skip for i in todo): break
                 d = visit(pg, u)
                 print(f"[{party}] {u} -> {len(d['imgs'])} imgs, title {d['title'][:50]!r}")
                 if len(d["imgs"]) < 10:
@@ -202,14 +248,24 @@ def main():
             for idx, n in enumerate(names):
                 if idx not in todo: continue
                 dest = OUT / f"{party}-{idx + 1:02d}.jpg"
-                if idx not in found:
-                    report.append(f"MISS {party} {idx + 1} {n}"); continue
-                src, ref, how = found[idx]
-                try:
-                    crop = save(src, dest, ref)
-                    report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}")
-                except Exception as e:
-                    report.append(f"FAIL {party} {idx + 1} {n} {src} {e}")
+                ok = False
+                if idx in found:
+                    src, ref, how = found[idx]
+                    try:
+                        crop = save(src, dest, ref)
+                        report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}"); ok = True
+                    except Exception as e:
+                        print(f"  site download failed {party} {idx + 1} {n}: {e}")
+                if not ok:
+                    w = wiki_photo(cfg["names"][idx]) or (wiki_photo(n) if n != cfg["names"][idx] else None)
+                    if w:
+                        try:
+                            crop = save(w[0], dest, w[1])
+                            report.append(f"OK   {party} {idx + 1} {n} <- ויקיפדיה [{crop}] {w[1]} · {w[2]}"); ok = True
+                        except Exception as e:
+                            report.append(f"FAIL {party} {idx + 1} {n} wiki {e}")
+                if not ok:
+                    report.append(f"MISS {party} {idx + 1} {n}")
         b.close()
     print("\n".join(report))
     src_file = OUT / "SOURCES.txt"

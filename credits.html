@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>החלק לקלפי · קרדיטים לתמונות</title>
+<style>
+:root { --bg: #e6ebf1; --ink: #141a24; --muted: #5a6577; --surface: #fff; --line: #d3dae4; --accent: #1e4fa8; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0f141b; --ink: #eef1f6; --muted: #9ba6b6; --surface: #1a212b; --line: #2d3644; --accent: #7aa7ff; color-scheme: dark; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 "Assistant", "Segoe UI", Arial, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+h1 { margin: 0 0 6px; font-size: 28px; }
+p { color: var(--muted); margin: 0 0 18px; }
+ul { list-style: none; padding: 0; margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+li { padding: 10px 14px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+li:first-child { border-top: 0; }
+li b { display: block; }
+li span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>קרדיטים לתמונות</h1>
+  <p>תמונות המועמדים נלקחו מאתרי המפלגות ומוויקיפדיה, נחתכו סביב הפנים והרקע שלהן הוחלף ברקע אחיד. <a href="./">חזרה למשחק</a></p>
+  <ul id="list"><li>טוען…</li></ul>
+</main>
+<script>
+const NAMES = { rak: "ביחד", derech: "ישר!", emet: "הדמוקרטים", lamed: "ישראל ביתנו" };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const link = (s) => esc(s).replace(/https?:\/\/\S+/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${decodeURI(u).replace(/^https?:\/\//, "").slice(0, 60)}</a>`);
+fetch("img/candidates/SOURCES.txt").then((r) => r.text()).then((t) => {
+  const rows = t.split("\n").filter((l) => l.startsWith("OK")).map((l) => {
+    const m = l.match(/^OK\s+(\w+)\s+(\d+)\s+(.*?)\s+<-\s+(.*)$/);
+    if (!m) return null;
+    const via = m[4].replace(/\[(face|no-face)\]\s*/, "");
+    return { party: m[1], place: +m[2], name: m[3], via };
+  }).filter(Boolean).sort((a, b) => a.party.localeCompare(b.party) || a.place - b.place);
+  document.getElementById("list").innerHTML = rows.map((r) =>
+    `<li><b>${esc(r.name)} · ${NAMES[r.party] || r.party}, מקום ${r.place}</b><span>${link(r.via)}</span></li>`).join("");
+}).catch(() => { document.getElementById("list").innerHTML = "<li>לא הצלחתי לטעון את רשימת המקורות.</li>"; });
+</script>
+</body>
+</html>
