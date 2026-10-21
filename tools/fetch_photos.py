@@ -42,10 +42,14 @@ def plain_imgs(url):
     """Static HTML fallback for sites that block headless browsers."""
     from bs4 import BeautifulSoup
     from urllib.parse import urljoin
-    try:
-        r = requests.get(url, headers={"User-Agent": UA}, timeout=40)
-    except Exception as e:
-        print("  plain fetch failed", e); return []
+    import time
+    r = None
+    for attempt in range(4):
+        try:
+            r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": "he-IL,he;q=0.9"}, timeout=40); break
+        except Exception as e:
+            print("  plain fetch failed", attempt, e); time.sleep(5 * (attempt + 1))
+    if r is None: return []
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
     for img in soup.find_all("img"):
@@ -93,7 +97,10 @@ def save(src, dest, referer):
     bg = Image.new("RGBA", im.size, (200, 204, 210, 255))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
     w, h = im.size
-    f = face_box(im)
+    try:
+        f = face_box(im)
+    except Exception as e:
+        print("  face detection unavailable:", e); f = None
     if f is not None:
         fx, fy, fw, fh = f
         side = int(min(w, h, fh * 2.6))
@@ -114,10 +121,10 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     report = []
     with sync_playwright() as p:
-        b = p.chromium.launch()
+        b = p.chromium.launch(args=["--disable-http2"])
         pg = b.new_page(user_agent=UA, locale="he-IL", viewport={"width": 1400, "height": 1000})
         for party, cfg in LISTS.items():
-            names = cfg["names"]
+            names = [cfg.get("aliases", {}).get(n, n) for n in cfg["names"]]
             pages = list(cfg.get("pages", []))
             found = {}
             # Party list pages
@@ -145,7 +152,7 @@ def main():
                 for idx, (url, og, imgs) in members.items():
                     if og and og_count[og] == 1:
                         found[idx] = (og, url, "member og"); continue
-                    own = [i for i in imgs if img_count[i["src"]] == 1]
+                    own = [i for i in imgs if img_count[i["src"]] == 1 and score(names[idx], i["alt"] + " " + i["ctx"] + " " + requests.utils.unquote(i["src"]).split("/")[-1].replace("-", " ")) >= 0.5]
                     if own:
                         best = max(own, key=lambda i: (score(names[idx], i["alt"] + " " + i["ctx"]), (i["w"] or 0) * (i["h"] or 0)))
                         found[idx] = (best["src"], url, "member img")
@@ -158,6 +165,10 @@ def main():
                     if s0 >= 0.99: found[idx] = (b0["src"], ranked[0][1], f"list ({b0['alt'] or b0['ctx'][:40]})")
                     else:
                         print(f"  miss {party} {idx+1} {n}; nearest:", [ (r[0]['alt'][:30], r[0]['ctx'][:50], r[0]['src'][-60:]) for r in ranked[:3] ])
+            from collections import Counter
+            dup = Counter(v[0] for v in found.values())
+            for idx in [i for i, v in found.items() if dup[v[0]] > 1]:
+                print(f"  shared photo dropped for {party} {idx + 1}"); del found[idx]
             for idx, n in enumerate(names):
                 dest = OUT / f"{party}-{idx + 1:02d}.jpg"
                 if idx not in found:

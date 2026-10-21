@@ -24,7 +24,10 @@
   ],
   "pages": [
    "https://be-yahad.org.il/team/"
-  ]
+  ],
+  "aliases": {
+   "מיכל הירש נגרי": "מיכל נגרי"
+  }
  },
  "derech": {
   "names": [
