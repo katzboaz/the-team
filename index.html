@@ -57,7 +57,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body {
   margin: 0;
   background: var(--bg);
@@ -81,6 +81,8 @@ button { font: inherit; color: inherit; }
   padding-block: 12px;
   max-width: 560px;
   margin-inline: auto;
+  overflow: hidden;
+  overflow: clip;           /* a card flying off-screen must never widen the page (RTL scrolls left) */
 }
 .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
@@ -234,7 +236,7 @@ button { font: inherit; color: inherit; }
 .slip-up .meta, .slip-down .meta { text-align: right; direction: rtl; }
 .slip-left .meta, .slip-right .meta { direction: rtl; }
 
-.stack { grid-column: 2; grid-row: 2; position: relative; direction: rtl; }
+.stack { grid-column: 2; grid-row: 2; position: relative; direction: rtl; z-index: 2; }
 .card {
   position: absolute; inset: 0;
   background: var(--surface);
@@ -275,6 +277,16 @@ button { font: inherit; color: inherit; }
   background: var(--surface);
 }
 
+.timer { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--line); border-radius: 20px 20px 0 0; overflow: hidden; }
+.timer i { display: block; height: 100%; width: 100%; transform-origin: right center; animation: drain 5s linear forwards; }
+.timer-n { position: absolute; top: 12px; left: 14px; font-size: 13px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.timer-n.low { color: var(--bad); }
+.card.behind .timer, .card.behind .timer-n { visibility: hidden; }
+@keyframes drain {
+  from { transform: scaleX(1); background-color: var(--accent); }
+  65%  { background-color: var(--accent); }
+  to   { transform: scaleX(0); background-color: var(--bad); }
+}
 .feedback {
   min-height: 52px; margin-top: 10px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -333,7 +345,7 @@ button { font: inherit; color: inherit; }
   <section class="screen start" id="start">
     <p class="brand">החלק לקלפי</p>
     <h1>בישראל בוחרים פתק לנבחרת, <em>לא רק לראש ממשלה.</em></h1>
-    <p class="lede">כמה אתם מכירים את 20 הראשונים ברשימות של בנט, איזנקוט, גולן וליברמן? מופיע מועמד, ואתם מחליקים אותו לפתק של המפלגה שלו.</p>
+    <p class="lede">כמה אתם מכירים את 20 הראשונים ברשימות של בנט, איזנקוט, גולן וליברמן? מופיע מועמד, ויש לכם 5 שניות להחליק אותו לפתק של המפלגה שלו.</p>
     <div class="demo" id="demo" aria-hidden="true">
       <div class="demo-stage">
         <div class="demo-card">
@@ -508,12 +520,37 @@ button { font: inherit; color: inherit; }
     el.className = "card";
     el.innerHTML = `
       <span class="stamp"></span>
+      <div class="timer" aria-hidden="true"><i></i></div>
+      <span class="timer-n" aria-hidden="true">5</span>
       <div class="avatar" style="--av:${avatarColor(person.name)}">${initials(person.name)}${photoSrc(person) ? `<img src="${photoSrc(person)}" alt="" draggable="false" onerror="this.remove()">` : ""}</div>
       <h2 class="name">${person.name}</h2>
       <span class="pos">מקום ${person.place} ברשימה</span>
       <p class="q">לאיזה פתק?</p>`;
     return el;
   }
+
+  // ---------- 5-second timer per card ----------
+  const TIME_MS = 5000;
+  let timerId = null, tickId = null, deadline = 0;
+  function stopTimer() { clearTimeout(timerId); clearInterval(tickId); timerId = tickId = null; }
+  function startTimer() {
+    stopTimer();
+    if (!current) return;
+    const bar = current.querySelector(".timer i"), n = current.querySelector(".timer-n");
+    bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = "";   // restart the bar
+    deadline = Date.now() + TIME_MS;
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      n.textContent = left; n.classList.toggle("low", left <= 2);
+    };
+    tick();
+    tickId = setInterval(tick, 200);
+    timerId = setTimeout(() => { if (current && current._cancelDrag) current._cancelDrag(); commit(null); }, TIME_MS);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if ($("game").hidden || locked || !current) return;
+    document.hidden ? stopTimer() : startTimer();   // don't burn the clock in a background tab
+  });
 
   function renderCards() {
     const stack = $("stack");
@@ -525,6 +562,7 @@ button { font: inherit; color: inherit; }
     current = cardEl(deck[idx]);
     stack.appendChild(current);
     attachDrag(current);
+    startTimer();
   }
 
   function dirOf(dx, dy, t) {
@@ -568,27 +606,33 @@ button { font: inherit; color: inherit; }
     };
     el.addEventListener("pointerup", end);
     el.addEventListener("pointercancel", end);
+    el._cancelDrag = () => { active = false; };
   }
 
+  // dir = null means the 5 seconds ran out
   function commit(dir, dx = 0, dy = 0) {
     if (locked || !current) return;
     locked = true;
+    stopTimer();
     highlight(dir);
     const person = deck[idx];
-    const chosen = DIR_PARTY[dir];
+    const chosen = dir ? DIR_PARTY[dir] : null;
     const ok = chosen === person.party;
     answers.push({ ...person, chosen, ok });
-    track(`conf_${person.party}_${chosen}`);
+    track(chosen ? `conf_${person.party}_${chosen}` : `timeout_${person.party}`);
 
-    const far = Math.max(innerWidth, innerHeight);
-    const v = { right: [far, dy], left: [-far, dy], up: [dx, -far], down: [dx, far] }[dir];
     const card = current;
     card.style.transition = reduceMotion ? "opacity .15s" : "";
-    card.style.transform = reduceMotion ? "" : `translate(${v[0]}px, ${v[1]}px) rotate(${v[0] * 0.03}deg)`;
+    if (dir) {
+      const far = Math.max(innerWidth, innerHeight);
+      const v = { right: [far, dy], left: [-far, dy], up: [dx, -far], down: [dx, far] }[dir];
+      card.style.transform = reduceMotion ? "" : `translate(${v[0]}px, ${v[1]}px) rotate(${v[0] * 0.03}deg)`;
+    } else {
+      card.style.transform = reduceMotion ? "" : "scale(.9)";
+    }
     card.style.opacity = "0";
 
-    const slip = slips[dir];
-    slip.classList.add(ok ? "good" : "bad");
+    if (dir) slips[dir].classList.add(ok ? "good" : "bad");
     if (!ok) slips[PARTIES[person.party].dir].classList.add("good");
 
     const p = PARTIES[person.party];
@@ -596,7 +640,9 @@ button { font: inherit; color: inherit; }
     fb.className = `feedback ${ok ? "good" : "bad"}`;
     fb.innerHTML = ok
       ? `✓ נכון! <b>${person.name}</b> · ${p.name}, מקום ${person.place}`
-      : `✗ לא. <b>${person.name}</b> ברשימת ${p.name} (${p.letters}), מקום ${person.place}`;
+      : dir
+        ? `✗ לא. <b>${person.name}</b> ברשימת ${p.name} (${p.letters}), מקום ${person.place}`
+        : `⏱ נגמר הזמן. <b>${person.name}</b> ברשימת ${p.name} (${p.letters}), מקום ${person.place}`;
 
     setTimeout(() => {
       Object.values(slips).forEach((s) => s.classList.remove("good", "bad", "hot"));
@@ -669,7 +715,7 @@ button { font: inherit; color: inherit; }
 
     const missed = answers.filter((a) => !a.ok);
     $("missesBox").hidden = missed.length === 0;
-    $("misses").innerHTML = missed.map((a) => `<li><b>${a.name}</b> · ${PARTIES[a.party].name}, מקום ${a.place} (סימנתי ${PARTIES[a.chosen].letters})</li>`).join("");
+    $("misses").innerHTML = missed.map((a) => `<li><b>${a.name}</b> · ${PARTIES[a.party].name}, מקום ${a.place} (${a.chosen ? "סימנתי " + PARTIES[a.chosen].letters : "נגמר הזמן"})</li>`).join("");
 
     const text = shareText(t);
     const url = shareUrl();
@@ -785,7 +831,7 @@ button { font: inherit; color: inherit; }
   $("play20").onclick = () => startGame(20);
   $("play80").onclick = () => startGame(80);
   $("again").onclick = () => { track("again"); show("start"); };
-  $("quit").onclick = () => { current = null; show("start"); };
+  $("quit").onclick = () => { stopTimer(); current = null; show("start"); };
 })();
 </script>
 </body>
