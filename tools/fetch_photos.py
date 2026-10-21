@@ -107,6 +107,8 @@ def same_backdrop(im):
         return im
 
 def save(src, dest, referer):
+    if src.startswith("manual:"):   # photo supplied by hand, kept in the repo
+        return finish(Image.open(ROOT / src[len("manual:"):]), dest)
     import time
     from urllib.parse import urlparse
     host = urlparse(src).hostname
@@ -120,7 +122,10 @@ def save(src, dest, referer):
             if attempt == 1:
                 DEAD_HOSTS.add(host); raise
             time.sleep(5)
-    im = Image.open(io.BytesIO(r.content)).convert("RGBA")
+    return finish(Image.open(io.BytesIO(r.content)), dest)
+
+def finish(im, dest):
+    im = im.convert("RGBA")
     bg = Image.new("RGBA", im.size, BACKDROP + (255,))   # neutral grey behind transparent cut-outs
     im = Image.alpha_composite(bg, im).convert("RGB")
     w, h = im.size
@@ -196,7 +201,7 @@ def main():
             pages = list(cfg.get("pages", []))
             found = {}
             for k, url in cfg.get("direct", {}).items():
-                found[int(k)] = (url, pages[0] if pages else url, "direct")
+                found[int(k)] = (url, pages[0] if pages else url, "direct" if not url.startswith("manual:") else "תמונה שסופקה ידנית")
             pool = []
             members = {}   # idx -> (url, og, imgs)
             for u in pages:

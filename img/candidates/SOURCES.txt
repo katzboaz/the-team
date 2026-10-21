@@ -65,7 +65,6 @@ OK   emet 6 גבי לסקי <- ויקיפדיה [no-face] https://he.wikipedia.o
 OK   emet 7 עמרי רונן <- ויקיפדיה [face] https://he.wikipedia.org/wiki/עמרי_רונן_(פעיל_חברתי) · Asaf Ben Zichri (אסף בן זכרי) · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Omri_Ronen_2024_(cropped).jpg
 OK   emet 8 מיכל רוזין <- ויקיפדיה [face] https://he.wikipedia.org/wiki/מיכל_רוזין · Elad Malka · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:%D7%9E%D7%99%D7%9B%D7%9C_%D7%A8%D7%95%D7%96%D7%99%D7%9F_2026.jpg
 OK   emet 9 משה רדמן אבוטבול <- ויקיפדיה [face] https://he.wikipedia.org/wiki/משה_רדמן_אבוטבול · Pixie.tt · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Moshe_Radman.png
-OK   emet 10 סומיה בשיר <- ויקיפדיה [face] https://he.wikipedia.org/wiki/סומיה_בשיר · יוסי רון · CC BY 2.5 · https://commons.wikimedia.org/wiki/File:145993_alternative_lighting_ceremonyalternative_independ_PikiWiki_Israel_(cropped).jpg
 OK   emet 11 נמרוד שפר <- ויקיפדיה [face] https://he.wikipedia.org/wiki/נמרוד_שפר · IDF Spokesperson's Unit photographer · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Tat-Aluf_Nimrod_Shefer_1.jpg
 OK   emet 12 מורן זר קצנשטיין <- ויקיפדיה [face] https://he.wikipedia.org/wiki/מורן_זר_קצנשטיין · יבגני גבריאלוביץ · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Moran_Zer_Katzenstein_2026_(cropped).jpg
 OK   emet 13 אבי דבוש <- ויקיפדיה [face] https://he.wikipedia.org/wiki/אבי_דבוש · יעל אילן · CC0 · https://commons.wikimedia.org/wiki/File:Avi_Dabush_2025a.jpg
