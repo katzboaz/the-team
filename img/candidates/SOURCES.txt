@@ -56,3 +56,23 @@ OK   lamed 17 מור דקל <- list (מור דקל) [face] https://beytenu.org.i
 OK   lamed 18 מיכאלה לוין שמיר <- list (מיכאלה לוין שמיר) [face] https://beytenu.org.il/wp-content/uploads/2026/09/עוד-מיכאלה-לוין-שמיר.jpg
 OK   lamed 19 אוליביה רפוביץ' <- list (אוליביה רפוביץ׳) [face] https://beytenu.org.il/wp-content/uploads/2026/09/אלמ-במיל-אוליביה-רפוביץ.jpg
 OK   lamed 20 יעקב (יענקי) מוזס <- list (יעקב (יענקי) מוזס) [face] https://beytenu.org.il/wp-content/uploads/2026/09/רסן-במיל-יעקב-ינקי-מוזס.jpg
+OK   emet 1 יאיר גולן <- ויקיפדיה [face] https://he.wikipedia.org/wiki/יאיר_גולן · Shlomi Amsalem · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Yair_Golan_(SHL_9404)_(3x4_cropped).jpg
+OK   emet 2 נעמה לזימי <- ויקיפדיה [face] https://he.wikipedia.org/wiki/נעמה_לזימי · Mayan Tarabish (מעיין טרביש) · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Naama_lazimi_(cropped).jpg
+OK   emet 3 גלעד קריב <- ויקיפדיה [face] https://he.wikipedia.org/wiki/גלעד_קריב · Rami Zarnegar · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Gilad_Kariv.png
+OK   emet 4 אפרת רייטן <- ויקיפדיה [face] https://he.wikipedia.org/wiki/אפרת_רייטן · Shai Franco · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Efrat_Rayten.jpg
+OK   emet 5 יאיא פינק <- ויקיפדיה [face] https://he.wikipedia.org/wiki/יאיא_פינק · Roby Yahav (רובי יהב) · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Yaya_Fink_(cropped).jpg
+OK   emet 6 גבי לסקי <- ויקיפדיה [no-face] https://he.wikipedia.org/wiki/גבי_לסקי · Oren Rozen · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Gaby_Lasky_180222_023_(cropped).jpg
+OK   emet 7 עמרי רונן <- ויקיפדיה [face] https://he.wikipedia.org/wiki/עמרי_רונן_(פעיל_חברתי) · Asaf Ben Zichri (אסף בן זכרי) · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Omri_Ronen_2024_(cropped).jpg
+OK   emet 8 מיכל רוזין <- ויקיפדיה [face] https://he.wikipedia.org/wiki/מיכל_רוזין · Elad Malka · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:%D7%9E%D7%99%D7%9B%D7%9C_%D7%A8%D7%95%D7%96%D7%99%D7%9F_2026.jpg
+OK   emet 9 משה רדמן אבוטבול <- ויקיפדיה [face] https://he.wikipedia.org/wiki/משה_רדמן_אבוטבול · Pixie.tt · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Moshe_Radman.png
+OK   emet 10 סומיה בשיר <- ויקיפדיה [face] https://he.wikipedia.org/wiki/סומיה_בשיר · יוסי רון · CC BY 2.5 · https://commons.wikimedia.org/wiki/File:145993_alternative_lighting_ceremonyalternative_independ_PikiWiki_Israel_(cropped).jpg
+OK   emet 11 נמרוד שפר <- ויקיפדיה [face] https://he.wikipedia.org/wiki/נמרוד_שפר · IDF Spokesperson's Unit photographer · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Tat-Aluf_Nimrod_Shefer_1.jpg
+OK   emet 12 מורן זר קצנשטיין <- ויקיפדיה [face] https://he.wikipedia.org/wiki/מורן_זר_קצנשטיין · יבגני גבריאלוביץ · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Moran_Zer_Katzenstein_2026_(cropped).jpg
+OK   emet 13 אבי דבוש <- ויקיפדיה [face] https://he.wikipedia.org/wiki/אבי_דבוש · יעל אילן · CC0 · https://commons.wikimedia.org/wiki/File:Avi_Dabush_2025a.jpg
+OK   emet 14 אמילי מואטי <- ויקיפדיה [face] https://he.wikipedia.org/wiki/אמילי_מואטי · Dan Haimovich (דן חיימוביץ) · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Emilie_Moatti,_2018_(cropped).jpg
+OK   emet 15 תומר אביטל <- ויקיפדיה [face] https://he.wikipedia.org/wiki/תומר_אביטל · Pinhas stern · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Tomer_Avital_-_Israeli_Journalist_-_2024.jpg
+OK   emet 16 נאווה רוזוליו <- ויקיפדיה [face] https://he.wikipedia.org/wiki/נאווה_רוזוליו · בן כהן · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Nava_Rozolyo_Photo_by_Ben_Cohen_(cropped).jpg
+OK   emet 17 רם שפע <- ויקיפדיה [face] https://he.wikipedia.org/wiki/רם_שפע · Shlomi Amsalem · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Ram_Shefa_(SHL_8927).jpg
+OK   emet 18 עלי סלאלחה <- ויקיפדיה [face] https://he.wikipedia.org/wiki/עלי_סלאלחה · Knesset photographer · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Ali_Salalcha_(salalja).jpg
+OK   emet 19 רתם סיון <- ויקיפדיה [face] https://he.wikipedia.org/wiki/רותם_סיון · RyanCampbellMgmt · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Rotem_Sivan_in_Krakow_Poland.jpg
+OK   emet 20 ערן עציון <- ויקיפדיה [face] https://he.wikipedia.org/wiki/ערן_עציון · ניב קנטור · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Eran_Etzion_(cropped).jpg
