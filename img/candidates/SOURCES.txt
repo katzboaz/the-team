@@ -73,3 +73,6 @@ OK   emet 15 תומר אביטל <- ויקיפדיה [face] https://he.wikipedia
 OK   emet 16 נאווה רוזוליו <- ויקיפדיה [face] https://he.wikipedia.org/wiki/נאווה_רוזוליו · בן כהן · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Nava_Rozolyo_Photo_by_Ben_Cohen_(cropped).jpg
 OK   emet 17 רם שפע <- ויקיפדיה [face] https://he.wikipedia.org/wiki/רם_שפע · Shlomi Amsalem · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Ram_Shefa_(SHL_8927).jpg
 OK   emet 20 ערן עציון <- ויקיפדיה [face] https://he.wikipedia.org/wiki/ערן_עציון · ניב קנטור · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File:Eran_Etzion_(cropped).jpg
+OK   emet 10 סומיה בשיר <- תמונה שסופקה ידנית [face] manual:tools/manual/emet-10.jpg
+OK   emet 18 עלי סלאלחה <- ויקיפדיה [face] https://he.wikipedia.org/wiki/עלי_סלאלחה · Knesset photographer · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Ali_Salalcha_(salalja).jpg
+OK   emet 19 רתם סיון <- ויקיפדיה [face] https://he.wikipedia.org/wiki/רותם_סיון · RyanCampbellMgmt · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Rotem_Sivan_in_Krakow_Poland.jpg
