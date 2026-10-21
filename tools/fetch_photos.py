@@ -195,7 +195,8 @@ def main():
         for party, cfg in LISTS.items():
             names = [cfg.get("aliases", {}).get(n, n) for n in cfg["names"]]
             skip = {int(k) for k in cfg.get("skip", [])}
-            todo = [i for i in range(len(names)) if FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists()]
+            # "skip" = no usable photo anywhere; leave those with initials
+            todo = [i for i in range(len(names)) if i not in skip and (FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists())]
             if not todo:
                 print(f"[{party}] complete"); continue
             pages = list(cfg.get("pages", []))
