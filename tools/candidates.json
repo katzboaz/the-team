@@ -101,14 +101,10 @@
    "15": "https://democrats.org.il/wp-content/uploads/2026/09/נאווה.jpeg",
    "16": "https://democrats.org.il/wp-content/uploads/2026/09/רם_שפע.jpg",
    "17": "manual:tools/manual/emet-18.jpg",
-   "18": "https://democrats.org.il/wp-content/uploads/2026/09/רתם_סיון_candidatePhoto.jpeg",
+   "18": "manual:tools/manual/emet-19.jpg",
    "19": "https://democrats.org.il/wp-content/uploads/2026/07/ערן-עציון-תמונה.jpeg",
    "0": "https://democrats.org.il/wp-content/uploads/2026/07/יאיר-גולן_400-1.png"
-  },
-  "skip": [
-   "18"
-  ],
-  "note": "18 (רתם סיון): התמונה בוויקיפדיה לא התאימה, נשאר עם ראשי תיבות"
+  }
  },
  "lamed": {
   "names": [
