@@ -24,7 +24,8 @@ jobs:
           c = json.load(open("tools/candidates.json", encoding="utf-8"))
           miss = [f"{p}-{i+1:02d}" for p, cfg in c.items() for i in range(len(cfg["names"]))
                   if str(i) not in cfg.get("skip", []) and not pathlib.Path(f"img/candidates/{p}-{i+1:02d}.jpg").exists()]
-          print("missing=" + str(len(miss)))
+          retry = [p for p, cfg in c.items() if cfg.get("prefer_site")]
+          print("missing=" + str(len(miss) + len(retry)))
           PY
       - if: steps.check.outputs.missing != '0'
         run: pip install -q playwright pillow requests beautifulsoup4 opencv-python-headless==4.10.0.84 "rembg[cpu]" && python -m playwright install --with-deps chromium > /dev/null
