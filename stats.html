@@ -131,27 +131,64 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
   const fmt = (n) => n.toLocaleString("he-IL");
   const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
 
+  // The counter service allows 30 requests per 10 seconds per visitor, and there is one
+  // request per counter, so fetch a few at a time and wait out a "too many requests" reply.
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   async function get(key) {
-    try {
-      const r = await fetch(API + key, { cache: "no-store" });
-      if (r.status === 404) return 0;
-      if (!r.ok) throw new Error(r.status);
-      return (await r.json()).value || 0;
-    } catch (e) { throw new Error(key); }
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const r = await fetch(API + key, { cache: "no-store" });
+        if (r.status === 404) return 0;
+        if (r.status === 429) {
+          const body = await r.json().catch(() => ({}));
+          const m = /([\d.]+)s/.exec(body.error || "");
+          await sleep(((m ? parseFloat(m[1]) : 5) + 0.5) * 1000);
+          continue;
+        }
+        if (!r.ok) throw new Error(r.status);
+        return (await r.json()).value || 0;
+      } catch (e) {
+        await sleep(1500);
+      }
+    }
+    return null;   // gave up on this one counter
   }
 
+  async function fetchAll(onProgress) {
+    const out = {}, queue = KEYS.slice();
+    let done = 0;
+    const worker = async () => {
+      while (queue.length) {
+        const k = queue.shift();
+        out[k] = await get(k);
+        onProgress(++done);
+      }
+    };
+    await Promise.all(Array.from({ length: 4 }, worker));
+    return out;
+  }
+
+  const CACHE = "hachlek-stats-cache";
+  let loading = false;
   async function load() {
-    $("updated").textContent = "טוען נתונים…";
-    let v;
-    try {
-      const vals = await Promise.all(KEYS.map(get));
-      v = Object.fromEntries(KEYS.map((k, i) => [k, vals[i]]));
-    } catch (e) {
-      $("updated").innerHTML = '<span class="err">שירות המונים לא ענה. נסו לרענן בעוד רגע.</span>';
-      return;
+    if (loading) return;
+    loading = true;
+    $("refresh").disabled = true;
+    // show the last numbers right away while fresh ones load
+    try { const c = JSON.parse(localStorage.getItem(CACHE) || "null"); if (c) render(c.v); } catch (e) {}
+    const v = await fetchAll((n) => { $("updated").textContent = `טוען נתונים… ${n}/${KEYS.length}`; });
+    const failed = KEYS.filter((k) => v[k] === null);
+    if (failed.length === KEYS.length) {
+      $("updated").innerHTML = '<span class="err">שירות המונים לא ענה. נסו לרענן בעוד דקה.</span>';
+    } else {
+      KEYS.forEach((k) => { if (v[k] === null) v[k] = 0; });
+      render(v);
+      try { localStorage.setItem(CACHE, JSON.stringify({ v, t: Date.now() })); } catch (e) {}
+      const time = new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+      $("updated").innerHTML = "עודכן " + time + (failed.length ? ` <span class="err">(${failed.length} מונים לא נטענו, נסו לרענן)</span>` : "");
     }
-    render(v);
-    $("updated").textContent = "עודכן " + new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+    $("refresh").disabled = false;
+    loading = false;
   }
 
   function render(v) {
