@@ -1,0 +1,58 @@
+OK   rak 1 נפתלי בנט <- list (נפתלי בנט) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/1-נפתלי-בנט-2048x1366.jpg
+OK   rak 2 יאיר לפיד <- list (יאיר לפיד) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/2-יאיר-לפיד-2048x1366.jpg
+OK   rak 3 קרן טרנר <- list (קרן טרנר) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/3-קרן-טרנר-2048x1550.jpg
+OK   rak 4 מירב בן ארי <- list (מירב בן ארי) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/4-מירב-בן-ארי-2048x1366.jpg
+OK   rak 5 לירן אבישר בן חורין <- list (לירן אבישר בן חורין) [face] https://be-yahad.org.il/wp-content/uploads/2026/04/5-לירן-אבישר-בן-חורין-2048x1366.jpg
+OK   rak 6 נעם תיבון <- list (נעם תיבון) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/6-נעם-תיבון-2048x1366.jpg
+OK   rak 7 מיכל נגרי <- list (מיכל נגרי) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/7-מיכל-נגרי-2048x1542.jpg
+OK   rak 8 איתן גינזבורג <- list (איתן גינזבורג) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/8-איתן-גינזבורג-1-1536x1024.png
+OK   rak 9 מירב כהן <- list (מירב כהן) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/9-מירב-כהן-2048x1366.jpg
+OK   rak 10 יונתן שלו <- list (יונתן שלו) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/10-יונתן-שלו-2048x1366.jpg
+OK   rak 11 ברוריה נעים ארמן <- list (ברוריה נעים ארמן) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/11-ברוריה-נעים-ארמן-2048x1365.jpg
+OK   rak 12 רם בן ברק <- list (רם בן ברק) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/12-רם-בן-ברק-2048x1366.jpg
+OK   rak 13 אמיר סטרוגו <- list (אמיר סטרוגו) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/13-אמיר-סטרוגו-scaled.jpg
+OK   rak 14 נאור שירי <- list (נאור שירי) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/14-נאור-שירי-2048x1366.jpg
+OK   rak 15 ניסן זאבי <- list (ניסן זאבי) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/15-ניסן-זאבי-2048x1366.jpg
+OK   rak 16 ולדימיר בליאק <- list (ולדימיר בליאק) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/16-ולדימיר-בליאק-2048x1366.jpg
+OK   rak 17 אורלי הראל <- list (אורלי הראל) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/17-אורלי-הראל-2048x1365.jpg
+OK   rak 18 יוראי להב הרצנו <- list (יוראי להב הרצנו) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/18-יוראי-להב-הרצנו-2048x1366.jpg
+OK   rak 19 שחר ורון <- list (שחר ורון) [face] https://be-yahad.org.il/wp-content/uploads/2026/09/19-שחר-ורון-2048x1365.jpg
+OK   rak 20 יסמין סאקס-פרידמן <- list (יסמין סאקס פרידמן) [face] https://be-yahad.org.il/wp-content/uploads/2026/07/20-יסמין-סאקס-פרידמן-2048x1366.jpg
+OK   derech 1 גדי איזנקוט <- list (יו”ר המפלגה גדי איזנקוט רב-אלוף (במיל') ) [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/06/gadi-eisenkot.webp
+OK   derech 2 יורם כהן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/04/yoram-cohen.webp
+OK   derech 3 אורית פרקש-הכהן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/05/orit-farkash-1.webp
+OK   derech 4 עדי אלטשולר <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/09/עדי-אלטשולר.png
+OK   derech 5 מתן כהנא <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/05/matan-kahana-1.webp
+OK   derech 6 חילי טרופר <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/09/חילי-טרופר.png
+OK   derech 7 שאול מרידור <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/04/shaul-meridor-1.webp
+OK   derech 8 תאיר איפרגן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/06/tair_ifargan.webp
+OK   derech 9 אושרת גני גונן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/07/אושרת-e1785318426848.png
+OK   derech 10 שירה שפירא <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/09/שירה-שפירא.png
+OK   derech 11 ענבר הרוש גיטי <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/04/inbar-harush-giti.webp
+OK   derech 12 אלעזר שטרן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/08/שטרן-סופי-e1787554647455.png
+OK   derech 13 כמיל אבו רוקן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/07/כמיל-רקע-שקוף-e1784736932714.png
+OK   derech 14 דבורה שריפיאן בכר <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/07/dvora-sharipian-bachar.webp
+OK   derech 15 אלקס ריף <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/06/alex-riff.webp
+OK   derech 16 ענבר יחזקאלי <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/04/inbar-yehezkeli-1.webp
+OK   derech 17 רועי פולקמן <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/08/פולקמן-e1787562888384.png
+OK   derech 18 ישראל זרי <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/08/20260804_190314_0000-e1785915320431.png
+OK   derech 19 טל אוחנה חכמון <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/08/טל.png
+OK   derech 20 אליסף פרץ <- member og [face] https://yasharwitheisenkot.com/wp-content/uploads/2026/09/אליסף-פרץ.png
+OK   lamed 1 אביגדור ליברמן <- list (חיל טילים לצד חיל האוויר: התוכנית של ליב) [face] https://beytenu.org.il/wp-content/uploads/2025/08/אביגדור-ליברמן-חבר-כנסת-scaled-e1791986006400.jpg
+OK   lamed 2 רפי בן שטרית <- list (רפי בן שטרית) [face] https://beytenu.org.il/wp-content/uploads/2024/05/רפי-בן-שטרית.jpg
+OK   lamed 4 עודד פורר <- list (עודד פורר) [face] https://beytenu.org.il/wp-content/uploads/2024/05/חכ-עודד-פורר.jpg
+OK   lamed 5 יוליה מלינובסקי <- list (יוליה מלינובסקי) [face] https://beytenu.org.il/wp-content/uploads/2024/05/חכ-יוליה-מלינובסקי-.jpg
+OK   lamed 6 שרון שרעבי <- list (שרון שרעבי) [face] https://beytenu.org.il/wp-content/uploads/2024/05/שרון-שרעבי.jpg
+OK   lamed 7 חמד עמאר <- list (חמד עמאר) [face] https://beytenu.org.il/wp-content/uploads/2026/09/חכ-חמד-עמאר.jpg
+OK   lamed 8 יבגני סובה <- list (יבגני סובה) [face] https://beytenu.org.il/wp-content/uploads/2026/09/חכ-יבגני-סובה.jpg
+OK   lamed 10 דן אילוז <- list (דן אילוז) [face] https://beytenu.org.il/wp-content/uploads/2026/09/חכל-דן-אילוז.jpg
+OK   lamed 11 לילי בן עמי <- list (לילי בן עמי) [face] https://beytenu.org.il/wp-content/uploads/2026/09/לילי-בן-עמי.jpg
+OK   lamed 12 יעל בנבנישתי <- list (יעל בנבנישתי) [face] https://beytenu.org.il/wp-content/uploads/2026/09/דר-יעל-בנבנישתי.jpg
+OK   lamed 13 דוד אזולאי <- list (דוד אזולאי) [face] https://beytenu.org.il/wp-content/uploads/2026/09/ראש-מועצה-מקומית-מטולה-דוד-אזולאי.jpg
+OK   lamed 14 לימור מגן תלם <- list (לימור מגן תלם) [face] https://beytenu.org.il/wp-content/uploads/2026/09/חכל-לימור-מגן-תלם.jpg
+OK   lamed 15 ישראל בן שטרית <- list (ישראל בן שטרית) [face] https://beytenu.org.il/wp-content/uploads/2026/09/סרן-במיל-ישראל-בן-שטרית.jpg
+OK   lamed 16 שרון רופא אופיר <- list (שרון רופא אופיר) [face] https://beytenu.org.il/wp-content/uploads/2026/09/חכ״ל-שרון-רופא-אופיר.jpg
+OK   lamed 17 מור דקל <- list (מור דקל) [face] https://beytenu.org.il/wp-content/uploads/2026/09/מור-דקל.jpg
+OK   lamed 18 מיכאלה לוין שמיר <- list (מיכאלה לוין שמיר) [face] https://beytenu.org.il/wp-content/uploads/2026/09/עוד-מיכאלה-לוין-שמיר.jpg
+OK   lamed 19 אוליביה רפוביץ' <- list (אוליביה רפוביץ׳) [face] https://beytenu.org.il/wp-content/uploads/2026/09/אלמ-במיל-אוליביה-רפוביץ.jpg
+OK   lamed 20 יעקב (יענקי) מוזס <- list (יעקב (יענקי) מוזס) [face] https://beytenu.org.il/wp-content/uploads/2026/09/רסן-במיל-יעקב-ינקי-מוזס.jpg

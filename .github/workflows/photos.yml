@@ -1,0 +1,37 @@
+name: fetch candidate photos
+on:
+  push:
+    paths: [".github/workflows/photos.yml", "tools/fetch_photos.py", "tools/candidates.json"]
+  schedule:
+    - cron: "17 * * * *"   # retry hourly for sites that were unreachable
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: photos-${{ github.ref }}
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: anything missing?
+        id: check
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          c = json.load(open("tools/candidates.json", encoding="utf-8"))
+          miss = [f"{p}-{i+1:02d}" for p, cfg in c.items() for i in range(len(cfg["names"]))
+                  if str(i) not in cfg.get("skip", []) and not pathlib.Path(f"img/candidates/{p}-{i+1:02d}.jpg").exists()]
+          print("missing=" + str(len(miss)))
+          PY
+      - if: steps.check.outputs.missing != '0'
+        run: pip install -q playwright pillow requests beautifulsoup4 opencv-python-headless==4.10.0.84 "rembg[cpu]" && python -m playwright install --with-deps chromium > /dev/null
+      - if: steps.check.outputs.missing != '0'
+        run: python tools/fetch_photos.py
+      - if: steps.check.outputs.missing != '0'
+        name: commit photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add img/candidates
+          git diff --cached --quiet || (git commit -m "Add candidate photos from party websites" && git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}")

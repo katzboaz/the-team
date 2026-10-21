@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>החלק לקלפי · סטטיסטיקות</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: a single column report: funnel tiles, then score distribution, party accuracy, confusion grid. */
+:root {
+  --bg: #e6ebf1; --surface: #ffffff; --ink: #141a24; --muted: #5a6577; --line: #d3dae4; --grid: #e7ebf1;
+  --accent: #1e4fa8; --seq: 30, 79, 168;
+  --p-rak: #2563eb; --p-derech: #c27c00; --p-emet: #d4183b; --p-lamed: #0891b2;
+  --good: #15803d; --bad: #b42318;
+  --font-display: "Secular One", "Arial Hebrew", Arial, sans-serif;
+  --font-body: "Assistant", "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0f141b; --surface: #1a212b; --ink: #eef1f6; --muted: #9ba6b6; --line: #2d3644; --grid: #232b36; --accent: #7aa7ff; --seq: 122, 167, 255; --good: #4ade80; --bad: #f87171; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0f141b; --surface: #1a212b; --ink: #eef1f6; --muted: #9ba6b6; --line: #2d3644; --grid: #232b36; --accent: #7aa7ff; --seq: 122, 167, 255; --good: #4ade80; --bad: #f87171; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 860px; margin-inline: auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: clamp(30px, 7vw, 42px); line-height: 1.05; margin: 0; }
+h1 a { color: inherit; text-decoration: none; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: 14px; margin: 0; }
+.btn { appearance: none; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.tile .k { font-size: 13px; color: var(--muted); font-weight: 600; }
+.tile .v { font-family: var(--font-display); font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.chart { position: relative; }
+.hist { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; align-items: end; height: 180px; border-bottom: 1px solid var(--line); direction: ltr;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px); background-size: 100% 45px; }
+.hist .col { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: default; }
+.hist .bar { width: 70%; max-width: 34px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 0; }
+.hist .col:hover .bar, .hist .col:focus .bar { filter: brightness(1.15); }
+.hist .n { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+.hist-x { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; direction: ltr; font-size: 12px; color: var(--muted); text-align: center; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.acc { display: flex; flex-direction: column; gap: 12px; }
+.acc .row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 54px; gap: 10px; align-items: center; }
+.ballot { height: 40px; background: #fcfcf8; color: #111; border: 1px solid #d9d6cc; border-radius: 3px; display: grid; place-items: center; font-family: var(--font-display); font-size: 18px; position: relative; }
+.ballot::after { content: ""; position: absolute; inset: auto 6px 4px; height: 3px; border-radius: 2px; background: var(--pc); }
+.acc .lbl { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15px; }
+.acc .lbl span { color: var(--muted); font-weight: 400; font-size: 13px; }
+.track { height: 10px; background: var(--grid); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+.track i { display: block; height: 100%; background: var(--pc); border-radius: inherit; }
+.acc .pct { font-family: var(--font-display); font-size: 20px; text-align: left; direction: ltr; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-width: 300px; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.cm th { font-size: 13px; color: var(--muted); font-weight: 600; padding: 6px; text-align: center; }
+.cm th[scope=row] { text-align: right; width: 24%; }
+.cm td { text-align: center; padding: 10px 6px; border-radius: 4px; font-weight: 700; background: rgba(var(--seq), var(--a)); color: var(--cell-ink, var(--ink)); }
+.cm td small { display: block; font-weight: 400; font-size: 12px; opacity: .8; }
+.cm td.diag { outline: 2px solid var(--good); outline-offset: -2px; }
+.legend { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 13px; padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); opacity: 0; transition: opacity .1s; z-index: 2; }
+.err { color: var(--bad); font-weight: 700; }
+.foot { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.foot label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.empty { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><a href="./">החלק לקלפי</a> · סטטיסטיקות</h1>
+      <p class="sub" id="updated">טוען נתונים…</p>
+    </div>
+    <button class="btn" id="refresh" type="button">רענון</button>
+  </header>
+
+  <section class="tiles" id="tiles" aria-label="משפך השחקנים"></section>
+
+  <section class="panel">
+    <h2>התפלגות הציונים</h2>
+    <p class="sub">כמה משחקים שהושלמו הגיעו לכל טווח של אחוזי הצלחה</p>
+    <div class="chart" id="histWrap">
+      <div class="hist" id="hist" role="img" aria-label="התפלגות ציונים"></div>
+      <div class="hist-x" id="histX"></div>
+      <div class="tip" id="tip"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>אחוז זיהוי נכון לפי מפלגה</h2>
+    <p class="sub">מכלל ההחלקות של מועמדי כל רשימה, כמה הגיעו לפתק הנכון</p>
+    <div class="acc" id="acc"></div>
+  </section>
+
+  <section class="panel">
+    <h2>לאן החליקו את המועמדים</h2>
+    <p class="sub">שורה = הרשימה האמיתית של המועמד, עמודה = הפתק שנבחר. המסגרת הירוקה היא תשובה נכונה.</p>
+    <div class="scroll"><table class="cm" id="cm"></table></div>
+  </section>
+
+  <div class="foot">
+    <label><input type="checkbox" id="nostats"> לא לספור את המשחקים שלי במכשיר הזה</label>
+    <span>המונים אנונימיים: בלי עוגיות ובלי מידע אישי.</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const NS = "hachlek-lakalpi-katzboaz";
+  const API = "https://abacus.jasoncameron.dev/get/" + NS + "/";
+  const P = {
+    rak:    { letters: "רק",  name: "ביחד",        css: "var(--p-rak)" },
+    derech: { letters: "דרך", name: "ישר!",        css: "var(--p-derech)" },
+    emet:   { letters: "אמת", name: "הדמוקרטים",   css: "var(--p-emet)" },
+    lamed:  { letters: "ל",   name: "ישראל ביתנו", css: "var(--p-lamed)" }
+  };
+  const ORDER = Object.keys(P);
+  const SCORES = Array.from({ length: 11 }, (_, i) => i * 10);
+  const KEYS = ["visit", "start_20", "start_80", "complete_20", "complete_80", "again", "share_x", "share_fb", "share_copy", "share_img"]
+    .concat(SCORES.map((s) => "score_" + s))
+    .concat(ORDER.flatMap((a) => ORDER.map((c) => `conf_${a}_${c}`)));
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => n.toLocaleString("he-IL");
+  const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+
+  async function get(key) {
+    try {
+      const r = await fetch(API + key, { cache: "no-store" });
+      if (r.status === 404) return 0;
+      if (!r.ok) throw new Error(r.status);
+      return (await r.json()).value || 0;
+    } catch (e) { throw new Error(key); }
+  }
+
+  async function load() {
+    $("updated").textContent = "טוען נתונים…";
+    let v;
+    try {
+      const vals = await Promise.all(KEYS.map(get));
+      v = Object.fromEntries(KEYS.map((k, i) => [k, vals[i]]));
+    } catch (e) {
+      $("updated").innerHTML = '<span class="err">שירות המונים לא ענה. נסו לרענן בעוד רגע.</span>';
+      return;
+    }
+    render(v);
+    $("updated").textContent = "עודכן " + new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function render(v) {
+    const started = v.start_20 + v.start_80, done = v.complete_20 + v.complete_80;
+    const shares = v.share_x + v.share_fb + v.share_copy + v.share_img;
+    let swipes = 0, right = 0;
+    ORDER.forEach((a) => ORDER.forEach((c) => { swipes += v[`conf_${a}_${c}`]; if (a === c) right += v[`conf_${a}_${c}`]; }));
+    const tiles = [
+      ["כניסות", fmt(v.visit), "ביקורים במשחק"],
+      ["התחילו משחק", fmt(started), `${pct(started, v.visit)}% מהכניסות · ${fmt(v.again)} משחקים חוזרים`],
+      ["השלימו", fmt(done), `${pct(done, started)}% מהמתחילים`],
+      ["סיבוב מהיר", fmt(v.start_20), `לעומת ${fmt(v.start_80)} משחקים של כל ה־80`],
+      ["החלקות", fmt(swipes), `${pct(right, swipes)}% לפתק הנכון`],
+      ["שיתופים", fmt(shares), `X ${fmt(v.share_x)} · פייסבוק ${fmt(v.share_fb)} · טקסט ${fmt(v.share_copy)} · תמונה ${fmt(v.share_img)}`]
+    ];
+    $("tiles").innerHTML = tiles.map(([k, val, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${val}</div><div class="d">${d}</div></div>`).join("");
+
+    // score histogram
+    const counts = SCORES.map((s) => v["score_" + s]);
+    const max = Math.max(1, ...counts);
+    const totalScores = counts.reduce((a, b) => a + b, 0);
+    $("hist").innerHTML = counts.map((n, i) => {
+      const label = SCORES[i] === 100 ? "100%" : `${SCORES[i]}–${SCORES[i] + 9}%`;
+      return `<div class="col" tabindex="0" data-tip="${label}: ${fmt(n)} משחקים (${pct(n, totalScores)}%)">${n ? `<span class="n">${fmt(n)}</span>` : ""}<div class="bar" style="height:${(n / max) * 88}%"></div></div>`;
+    }).join("");
+    $("histX").innerHTML = SCORES.map((s) => `<span>${s}</span>`).join("");
+    if (!totalScores) $("hist").insertAdjacentHTML("beforeend", "");
+
+    // party accuracy
+    $("acc").innerHTML = ORDER.map((a) => {
+      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0), ok = v[`conf_${a}_${a}`];
+      const worst = ORDER.filter((c) => c !== a).sort((x, y) => v[`conf_${a}_${y}`] - v[`conf_${a}_${x}`])[0];
+      const wrongN = v[`conf_${a}_${worst}`];
+      const note = wrongN ? `טעות נפוצה: ${P[worst].name} (${pct(wrongN, tot)}%)` : `${fmt(tot)} החלקות`;
+      return `<div class="row" style="--pc:${P[a].css}"><div class="ballot">${P[a].letters}</div>
+        <div><div class="lbl">${P[a].name} <span>${note}</span></div><div class="track"><i style="width:${pct(ok, tot)}%"></i></div></div>
+        <div class="pct">${pct(ok, tot)}%</div></div>`;
+    }).join("");
+
+    // confusion matrix (row-normalised)
+    let html = `<thead><tr><th></th>${ORDER.map((c) => `<th scope="col"><b style="font-family:var(--font-display);font-size:18px;color:var(--ink)">${P[c].letters}</b><br>${P[c].name}</th>`).join("")}</tr></thead><tbody>`;
+    ORDER.forEach((a) => {
+      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0);
+      html += `<tr><th scope="row">${P[a].name}</th>`;
+      ORDER.forEach((c) => {
+        const n = v[`conf_${a}_${c}`], p = pct(n, tot);
+        const alpha = tot ? 0.08 + 0.8 * (n / tot) : 0.04;
+        const ink = alpha > 0.55 ? "#fff" : "var(--ink)";
+        html += `<td class="${a === c ? "diag" : ""}" style="--a:${alpha.toFixed(2)};--cell-ink:${ink}" title="${P[a].name} → ${P[c].name}: ${fmt(n)}">${p}%<small>${fmt(n)}</small></td>`;
+      });
+      html += "</tr>";
+    });
+    $("cm").innerHTML = html + "</tbody>";
+  }
+
+  // tooltip for histogram columns
+  const tip = $("tip"), wrap = $("histWrap");
+  function showTip(el) {
+    const r = el.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+    tip.textContent = el.dataset.tip;
+    tip.style.left = `${Math.min(Math.max(r.left + r.width / 2 - w.left, 70), w.width - 70)}px`;
+    tip.style.top = `${r.bottom - w.top - el.querySelector(".bar").offsetHeight}px`;
+    tip.style.opacity = 1;
+  }
+  $("hist").addEventListener("pointerover", (e) => { const c = e.target.closest(".col"); if (c) showTip(c); });
+  $("hist").addEventListener("focusin", (e) => { const c = e.target.closest(".col"); if (c) showTip(c); });
+  $("hist").addEventListener("pointerleave", () => tip.style.opacity = 0);
+  $("hist").addEventListener("focusout", () => tip.style.opacity = 0);
+
+  // opt-out of counting on this device
+  const box = $("nostats");
+  try { box.checked = localStorage.getItem("hachlek-nostats") === "1"; } catch (e) {}
+  box.addEventListener("change", () => { try { box.checked ? localStorage.setItem("hachlek-nostats", "1") : localStorage.removeItem("hachlek-nostats"); } catch (e) {} });
+
+  $("refresh").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
