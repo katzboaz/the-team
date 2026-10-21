@@ -139,6 +139,40 @@ def save(src, dest, referer):
     return how
 
 FORCE = "--force" in sys.argv
+WIKI_UA = {"User-Agent": "hachlek-lakalpi/1.0 (https://github.com/katzboaz/the-team; game photo credits)"}
+
+def wiki_photo(name):
+    """Freely-licensed lead image of the person's Hebrew Wikipedia article, with credit."""
+    api = "https://he.wikipedia.org/w/api.php"
+    q = {"action": "query", "format": "json", "redirects": 1, "prop": "pageprops", "ppprop": "page_image_free|disambiguation"}
+    titles = [name]
+    try:
+        r = requests.get(api, params={"action": "query", "format": "json", "list": "search", "srsearch": name, "srlimit": 5}, headers=WIKI_UA, timeout=30).json()
+        titles += [h["title"] for h in r.get("query", {}).get("search", [])]
+    except Exception as e:
+        print("  wiki search failed", name, e)
+    for t in titles:
+        base = re.sub(r"\s*\(.*\)$", "", t)
+        if score(name, base) < 0.99 or score(base, name) < 0.99: continue
+        try:
+            pages = requests.get(api, params={**q, "titles": t}, headers=WIKI_UA, timeout=30).json()["query"]["pages"]
+        except Exception as e:
+            print("  wiki page failed", t, e); continue
+        for pg_ in pages.values():
+            props = pg_.get("pageprops", {})
+            if "disambiguation" in props or "page_image_free" not in props: continue
+            f = props["page_image_free"]
+            info = requests.get("https://commons.wikimedia.org/w/api.php", params={"action": "query", "format": "json", "titles": "File:" + f, "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 900}, headers=WIKI_UA, timeout=30).json()
+            ii = next(iter(info["query"]["pages"].values())).get("imageinfo")
+            if not ii:  # file hosted locally on he.wikipedia
+                info = requests.get(api, params={"action": "query", "format": "json", "titles": "File:" + f, "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 900}, headers=WIKI_UA, timeout=30).json()
+                ii = next(iter(info["query"]["pages"].values())).get("imageinfo")
+            if not ii: continue
+            ii = ii[0]; md = ii.get("extmetadata", {})
+            strip = lambda h: re.sub(r"<[^>]+>", "", h or "").strip()
+            credit = f"{strip(md.get('Artist', {}).get('value'))} · {strip(md.get('LicenseShortName', {}).get('value'))} · {ii.get('descriptionurl', '')}"
+            return ii.get("thumburl") or ii["url"], "https://he.wikipedia.org/wiki/" + pg_["title"].replace(" ", "_"), credit
+    return None
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 def main():
@@ -150,7 +184,7 @@ def main():
         for party, cfg in LISTS.items():
             names = [cfg.get("aliases", {}).get(n, n) for n in cfg["names"]]
             skip = {int(k) for k in cfg.get("skip", [])}
-            todo = [i for i in range(len(names)) if i not in skip and (FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists())]
+            todo = [i for i in range(len(names)) if FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists()]
             if not todo:
                 print(f"[{party}] complete"); continue
             pages = list(cfg.get("pages", []))
@@ -160,7 +194,7 @@ def main():
             pool = []
             members = {}   # idx -> (url, og, imgs)
             for u in pages:
-                if all(i in found for i in todo): break
+                if all(i in found or i in skip for i in todo): break
                 d = visit(pg, u)
                 print(f"[{party}] {u} -> {len(d['imgs'])} imgs, title {d['title'][:50]!r}")
                 if len(d["imgs"]) < 10:
@@ -202,14 +236,24 @@ def main():
             for idx, n in enumerate(names):
                 if idx not in todo: continue
                 dest = OUT / f"{party}-{idx + 1:02d}.jpg"
-                if idx not in found:
-                    report.append(f"MISS {party} {idx + 1} {n}"); continue
-                src, ref, how = found[idx]
-                try:
-                    crop = save(src, dest, ref)
-                    report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}")
-                except Exception as e:
-                    report.append(f"FAIL {party} {idx + 1} {n} {src} {e}")
+                ok = False
+                if idx in found:
+                    src, ref, how = found[idx]
+                    try:
+                        crop = save(src, dest, ref)
+                        report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}"); ok = True
+                    except Exception as e:
+                        print(f"  site download failed {party} {idx + 1} {n}: {e}")
+                if not ok:
+                    w = wiki_photo(cfg["names"][idx]) or (wiki_photo(n) if n != cfg["names"][idx] else None)
+                    if w:
+                        try:
+                            crop = save(w[0], dest, w[1])
+                            report.append(f"OK   {party} {idx + 1} {n} <- ויקיפדיה [{crop}] {w[1]} · {w[2]}"); ok = True
+                        except Exception as e:
+                            report.append(f"FAIL {party} {idx + 1} {n} wiki {e}")
+                if not ok:
+                    report.append(f"MISS {party} {idx + 1} {n}")
         b.close()
     print("\n".join(report))
     src_file = OUT / "SOURCES.txt"
