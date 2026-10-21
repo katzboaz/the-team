@@ -1,5 +1,8 @@
 name: recon party pages
-on: workflow_dispatch
+on:
+  push:
+    branches: [ccr-14311a87-fht1xv]
+    paths: [".github/workflows/recon.yml", "tools/recon.py"]
 jobs:
   recon:
     runs-on: ubuntu-latest
