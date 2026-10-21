@@ -113,11 +113,10 @@ def save(src, dest, referer):
     if host in DEAD_HOSTS: raise RuntimeError(f"{host} unreachable earlier in this run")
     for attempt in range(2):
         try:
-            r = requests.get(src, timeout=(10, 25), headers={"User-Agent": UA if "wiki" not in (host or "") else WIKI_UA["User-Agent"], "Referer": referer, "Accept": "image/avif,image/webp,image/*,*/*"})
+            from urllib.parse import quote
+            r = requests.get(src, timeout=(10, 25), headers={"User-Agent": UA if "wiki" not in (host or "") else WIKI_UA["User-Agent"], "Referer": quote(referer, safe=":/?&=#%"), "Accept": "image/avif,image/webp,image/*,*/*"})
             r.raise_for_status(); break
-        except requests.HTTPError:
-            raise
-        except Exception:
+        except (requests.ConnectionError, requests.Timeout):
             if attempt == 1:
                 DEAD_HOSTS.add(host); raise
             time.sleep(5)
