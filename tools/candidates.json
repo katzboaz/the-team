@@ -104,7 +104,12 @@
    "18": "https://democrats.org.il/wp-content/uploads/2026/09/רתם_סיון_candidatePhoto.jpeg",
    "19": "https://democrats.org.il/wp-content/uploads/2026/07/ערן-עציון-תמונה.jpeg",
    "0": "https://democrats.org.il/wp-content/uploads/2026/07/יאיר-גולן_400-1.png"
-  }
+  },
+  "skip": [
+   "17",
+   "18"
+  ],
+  "note": "17 (עלי סלאלחה) ו־18 (רתם סיון): התמונות בוויקיפדיה לא התאימו, נשארים עם ראשי תיבות"
  },
  "lamed": {
   "names": [
