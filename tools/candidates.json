@@ -134,8 +134,10 @@
   ],
   "follow": "\\?member=\\d+",
   "skip": [
-   "2",
    "8"
-  ]
+  ],
+  "direct": {
+   "2": "manual:tools/manual/lamed-03.jpg"
+  }
  }
 }

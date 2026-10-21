@@ -58,7 +58,8 @@ h2 { font-size: 18px; margin: 0 0 4px; }
 .scroll { overflow-x: auto; }
 table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-width: 300px; table-layout: fixed; font-variant-numeric: tabular-nums; }
 .cm th { font-size: 13px; color: var(--muted); font-weight: 600; padding: 6px; text-align: center; }
-.cm th[scope=row] { text-align: right; width: 24%; }
+.cm th[scope=row] { text-align: right; width: 22%; }
+.cm td { font-size: 14px; }
 .cm td { text-align: center; padding: 10px 6px; border-radius: 4px; font-weight: 700; background: rgba(var(--seq), var(--a)); color: var(--cell-ink, var(--ink)); }
 .cm td small { display: block; font-weight: 400; font-size: 12px; opacity: .8; }
 .cm td.diag { outline: 2px solid var(--good); outline-offset: -2px; }
@@ -100,7 +101,7 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
 
   <section class="panel">
     <h2>לאן החליקו את המועמדים</h2>
-    <p class="sub">שורה = הרשימה האמיתית של המועמד, עמודה = הפתק שנבחר. המסגרת הירוקה היא תשובה נכונה.</p>
+    <p class="sub">שורה = הרשימה האמיתית של המועמד, עמודה = הפתק שנבחר (או שנגמר הזמן). המסגרת הירוקה היא תשובה נכונה.</p>
     <div class="scroll"><table class="cm" id="cm"></table></div>
   </section>
 
@@ -124,7 +125,8 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
   const SCORES = Array.from({ length: 11 }, (_, i) => i * 10);
   const KEYS = ["visit", "start_20", "start_80", "complete_20", "complete_80", "again", "share_x", "share_fb", "share_copy", "share_img"]
     .concat(SCORES.map((s) => "score_" + s))
-    .concat(ORDER.flatMap((a) => ORDER.map((c) => `conf_${a}_${c}`)));
+    .concat(ORDER.flatMap((a) => ORDER.map((c) => `conf_${a}_${c}`)))
+    .concat(ORDER.map((a) => `timeout_${a}`));
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => n.toLocaleString("he-IL");
   const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
@@ -156,6 +158,7 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
     const started = v.start_20 + v.start_80, done = v.complete_20 + v.complete_80;
     const shares = v.share_x + v.share_fb + v.share_copy + v.share_img;
     let swipes = 0, right = 0;
+    const timeouts = ORDER.reduce((t, a) => t + v[`timeout_${a}`], 0);
     ORDER.forEach((a) => ORDER.forEach((c) => { swipes += v[`conf_${a}_${c}`]; if (a === c) right += v[`conf_${a}_${c}`]; }));
     const tiles = [
       ["כניסות", fmt(v.visit), "ביקורים במשחק"],
@@ -163,6 +166,7 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
       ["השלימו", fmt(done), `${pct(done, started)}% מהמתחילים`],
       ["סיבוב מהיר", fmt(v.start_20), `לעומת ${fmt(v.start_80)} משחקים של כל ה־80`],
       ["החלקות", fmt(swipes), `${pct(right, swipes)}% לפתק הנכון`],
+      ["נגמר הזמן", fmt(timeouts), `${pct(timeouts, swipes + timeouts)}% מהכרטיסים לא הוחלקו תוך 5 שניות`],
       ["שיתופים", fmt(shares), `X ${fmt(v.share_x)} · פייסבוק ${fmt(v.share_fb)} · טקסט ${fmt(v.share_copy)} · תמונה ${fmt(v.share_img)}`]
     ];
     $("tiles").innerHTML = tiles.map(([k, val, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${val}</div><div class="d">${d}</div></div>`).join("");
@@ -180,7 +184,7 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
 
     // party accuracy
     $("acc").innerHTML = ORDER.map((a) => {
-      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0), ok = v[`conf_${a}_${a}`];
+      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0) + v[`timeout_${a}`], ok = v[`conf_${a}_${a}`];
       const worst = ORDER.filter((c) => c !== a).sort((x, y) => v[`conf_${a}_${y}`] - v[`conf_${a}_${x}`])[0];
       const wrongN = v[`conf_${a}_${worst}`];
       const note = wrongN ? `טעות נפוצה: ${P[worst].name} (${pct(wrongN, tot)}%)` : `${fmt(tot)} החלקות`;
@@ -190,15 +194,15 @@ table.cm { border-collapse: separate; border-spacing: 2px; width: 100%; min-widt
     }).join("");
 
     // confusion matrix (row-normalised)
-    let html = `<thead><tr><th></th>${ORDER.map((c) => `<th scope="col"><b style="font-family:var(--font-display);font-size:18px;color:var(--ink)">${P[c].letters}</b><br>${P[c].name}</th>`).join("")}</tr></thead><tbody>`;
+    let html = `<thead><tr><th></th>${ORDER.map((c) => `<th scope="col"><b style="font-family:var(--font-display);font-size:18px;color:var(--ink)">${P[c].letters}</b><br>${P[c].name}</th>`).join("")}<th scope="col"><b style="font-size:18px;color:var(--ink)">⏱</b><br>נגמר הזמן</th></tr></thead><tbody>`;
     ORDER.forEach((a) => {
-      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0);
+      const tot = ORDER.reduce((s, c) => s + v[`conf_${a}_${c}`], 0) + v[`timeout_${a}`];
       html += `<tr><th scope="row">${P[a].name}</th>`;
-      ORDER.forEach((c) => {
-        const n = v[`conf_${a}_${c}`], p = pct(n, tot);
+      ORDER.concat("timeout").forEach((c) => {
+        const n = c === "timeout" ? v[`timeout_${a}`] : v[`conf_${a}_${c}`], p = pct(n, tot);
         const alpha = tot ? 0.08 + 0.8 * (n / tot) : 0.04;
         const ink = alpha > 0.55 ? "#fff" : "var(--ink)";
-        html += `<td class="${a === c ? "diag" : ""}" style="--a:${alpha.toFixed(2)};--cell-ink:${ink}" title="${P[a].name} → ${P[c].name}: ${fmt(n)}">${p}%<small>${fmt(n)}</small></td>`;
+        html += `<td class="${a === c ? "diag" : ""}" style="--a:${alpha.toFixed(2)};--cell-ink:${ink}" title="${P[a].name} → ${c === "timeout" ? "נגמר הזמן" : P[c].name}: ${fmt(n)}">${p}%<small>${fmt(n)}</small></td>`;
       });
       html += "</tr>";
     });
