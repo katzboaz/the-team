@@ -197,6 +197,9 @@ def main():
             skip = {int(k) for k in cfg.get("skip", [])}
             # "skip" = no usable photo anywhere; leave those with initials
             todo = [i for i in range(len(names)) if i not in skip and (FORCE or not (OUT / f"{party}-{i + 1:02d}.jpg").exists())]
+            # "prefer_site": the party site's own studio photos replace fallback ones when the site answers
+            if cfg.get("prefer_site"):
+                todo = sorted(set(todo) | {int(k) for k, u in cfg.get("direct", {}).items() if not u.startswith("manual:") and int(k) not in skip})
             if not todo:
                 print(f"[{party}] complete"); continue
             pages = list(cfg.get("pages", []))
@@ -256,6 +259,8 @@ def main():
                         report.append(f"OK   {party} {idx + 1} {n} <- {how} [{crop}] {src}"); ok = True
                     except Exception as e:
                         print(f"  site download failed {party} {idx + 1} {n}: {e}")
+                if not ok and cfg.get("prefer_site") and dest.exists():
+                    report.append(f"KEEP {party} {idx + 1} {n} (site unreachable, keeping current photo)"); continue
                 if not ok:
                     w = wiki_photo(cfg["names"][idx]) or (wiki_photo(n) if n != cfg["names"][idx] else None)
                     if w:
@@ -270,6 +275,8 @@ def main():
     print("\n".join(report))
     src_file = OUT / "SOURCES.txt"
     old = src_file.read_text(encoding="utf-8").splitlines() if src_file.exists() and not FORCE else []
+    redone = {" ".join(r.split()[1:3]) for r in report if r.startswith("OK")}
+    old = [l for l in old if " ".join(l.split()[1:3]) not in redone]
     src_file.write_text("\n".join(old + [r for r in report if r.startswith("OK")]) + "\n", encoding="utf-8")
     have = sorted(f.stem for f in OUT.glob("*.jpg"))
     (OUT / "manifest.json").write_text(json.dumps(have) + "\n", encoding="utf-8")
